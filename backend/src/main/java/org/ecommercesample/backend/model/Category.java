@@ -13,7 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "categories")
 @Builder
-public class Category {
+public class
+Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

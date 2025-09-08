@@ -2,6 +2,8 @@ package org.ecommercesample.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name="users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,11 +22,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
+    @NotBlank(message = "First name cannot be blank")
     private String firstName;
     private String lastName;
     @Column(nullable = false,unique = true)
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "please provide a valid email id")
     private String email;
-    @Size(min = 8)
+    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @NotBlank(message = "Password cannot be blank")
     @Column(nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)

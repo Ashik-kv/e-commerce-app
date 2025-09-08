@@ -7,6 +7,8 @@ import org.ecommercesample.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -18,5 +20,9 @@ public class UserService {
             throw new UserAlreadyExistsException("A user with email " + user.getEmail() + " already exists.");
         }
         return userRepo.save(user);
+    }
+
+    public List<User> getAllUsers() {
+        return  userRepo.findAll();
     }
 }

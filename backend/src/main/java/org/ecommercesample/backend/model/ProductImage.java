@@ -22,7 +22,6 @@ public class ProductImage {
     @Column(nullable = false)
     @NotBlank
     private String imageType;
-    @Lob
     @Column(nullable = false, columnDefinition = "BYTEA")
     private byte[] imageFile;
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package org.ecommercesample.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -35,10 +36,10 @@ public class Product {
     private Integer discountPercentage;
     @Column(nullable = false)
     @Min(0)
-    private int stockQuantity;
+    private Integer stockQuantity;
     private LocalDate mfgDate;
     @Column(nullable = false)
-    private boolean available;
+    private Boolean available;
     @CreationTimestamp
     @Column(nullable=false,updatable = false)
     private LocalDateTime createdAt;
@@ -48,6 +49,7 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="category_id",nullable = false)
     private Category category;
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="seller_id",nullable = false)
     private User seller;

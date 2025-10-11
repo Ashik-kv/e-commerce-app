@@ -39,7 +39,7 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
     List<Product> findByBrandContainingIgnoreCase(String brand);
 
     // Find products within price range
-    @Query("SELECT p FROM Product p WHERE p.getDiscountPrice() BETWEEN :minPrice AND :maxPrice AND p.available = true")
+    @Query("SELECT p FROM Product p WHERE (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) BETWEEN :minPrice AND :maxPrice AND p.available = true")
     List<Product> findByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
 
     // Find products by category name
@@ -57,8 +57,8 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
     // Find products by multiple criteria
     @Query("SELECT p FROM Product p WHERE " +
             "(:categoryId IS NULL OR p.category.id = :categoryId) AND" +
-            "(:minPrice IS NULL OR p.getDiscountedPrice() >= :minPrice) AND " +
-            "(:maxPrice IS NULL OR p.getDiscountedPrice() <= :maxPrice) AND " +
+            "(:minPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) >= :minPrice) AND " +
+            "(:maxPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) <= :maxPrice) AND " +
             "(:available IS NULL OR p.available = :available) AND " +
             "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Product> findProductsByCriteria(

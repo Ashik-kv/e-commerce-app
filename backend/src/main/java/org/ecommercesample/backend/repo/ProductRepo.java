@@ -79,4 +79,12 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
     // Find featured products (you can define your own criteria)
     @Query("SELECT p FROM Product p WHERE p.available = true AND p.stockQuantity > 0 ORDER BY p.discountPercentage DESC")
     List<Product> findFeaturedProducts();
+
+    // Find product by keyword
+    @Query("SELECT p FROM Product p WHERE " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.brand) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Optional<Product> findByKeyword(@Param("keyword") String keyword);
 }

@@ -34,4 +34,15 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/search/{keyword}")
+    public ResponseEntity<Product> searchProductByKeyword(@PathVariable String keyword){
+        try{
+            Product product=productService.getProductByKeyword(keyword);
+            return ResponseEntity.ok(product);
+        }
+        catch (ResourceNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

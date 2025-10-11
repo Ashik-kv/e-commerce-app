@@ -71,4 +71,10 @@ public class ProductService {
          productRepo.deleteById(productId);
     }
 
+
+    public Product getProductByKeyword(String keyword){
+        return productRepo.findByKeyword(keyword)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found for search :" + keyword));
+    }
+
 }

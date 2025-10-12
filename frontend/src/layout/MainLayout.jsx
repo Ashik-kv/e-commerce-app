@@ -1,6 +1,6 @@
 // src/layout/MainLayout.jsx
-import React, { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import HomePage from '../pages/HomePage';
@@ -9,12 +9,15 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import SellerDashboard from '../pages/SellerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
-import CartPage from '../pages/CartPage'; // Import CartPage
-import CheckoutPage from '../pages/CheckoutPage'; // Import CheckoutPage
+import CartPage from '../pages/CartPage';
+import CheckoutPage from '../pages/CheckoutPage';
+import AddressPage from '../pages/AddressPage';
+import OrderHistoryPage from '../pages/OrderHistoryPage';
+import OrderDetailPage from '../pages/OrderDetailPage';
 import './mainlayout.css'
 
 function PageContent() {
-    const { currentPage, selectedProductId, isLoading } = useContext(AppContext);
+    const { currentPage, selectedProductId, isLoading } = useAppContext();
     if (isLoading) return <div className="text-center text-xl mt-12">Loading...</div>;
     switch (currentPage) {
         case 'home': return <HomePage />;
@@ -23,8 +26,11 @@ function PageContent() {
         case 'register': return <RegisterPage />;
         case 'seller': return <SellerDashboard />;
         case 'admin': return <AdminDashboard />;
-        case 'cart': return <CartPage />; // Add case for cart
-        case 'checkout': return <CheckoutPage />; // Add case for checkout
+        case 'cart': return <CartPage />;
+        case 'checkout': return <CheckoutPage />;
+        case 'addresses': return <AddressPage />;
+        case 'order-history': return <OrderHistoryPage />;
+        case 'order-detail': return <OrderDetailPage orderId={selectedProductId} />;
         default: return <HomePage />;
     }
 }

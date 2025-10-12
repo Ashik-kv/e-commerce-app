@@ -1,9 +1,9 @@
 // src/components/Navbar.jsx
-import React, { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 
 export default function Navbar() {
-    const { currentUser, navigate, logout, cart } = useContext(AppContext);
+    const { currentUser, navigate, logout, cart } = useAppContext();
 
     const navLinkStyle = "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition";
 
@@ -17,10 +17,11 @@ export default function Navbar() {
                     <div className="flex items-center space-x-2 md:space-x-4">
                         <button onClick={() => navigate('home')} className={navLinkStyle}>Home</button>
                         <button onClick={() => navigate('cart')} className={navLinkStyle}>
-                            Cart {cart.length > 0 && `(${cart.length})`}
+                            Cart {cart && cart.cartItems.length > 0 && `(${cart.cartItems.length})`}
                         </button>
                         {currentUser ? (
                             <>
+                                <button onClick={() => navigate('order-history')} className={navLinkStyle}>My Orders</button>
                                 {currentUser.roles?.includes('ROLE_SELLER') && (
                                     <button onClick={() => navigate('seller')} className={navLinkStyle}>Seller</button>
                                 )}

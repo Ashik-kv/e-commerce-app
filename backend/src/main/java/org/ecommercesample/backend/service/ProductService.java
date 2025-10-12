@@ -1,5 +1,6 @@
 package org.ecommercesample.backend.service;
 
+import org.ecommercesample.backend.exceptions.InsufficientStockException;
 import org.ecommercesample.backend.exceptions.ResourceNotFoundException;
 import org.ecommercesample.backend.model.Product;
 import org.ecommercesample.backend.repo.ProductRepo;
@@ -75,6 +76,42 @@ public class ProductService {
     public Product getProductByKeyword(String keyword){
         return productRepo.findByKeyword(keyword)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found for search :" + keyword));
+    }
+
+    public void reduceStock(Long productId, int quantity) {
+        Product product = getProductById(productId);
+
+        if (product.getStockQuantity() < quantity) {
+            throw new InsufficientStockException(
+                    "Insufficient stock for product: " + product.getName() +
+                            ". Available: " + product.getStockQuantity() +
+                            ", Requested: " + quantity
+            );
+        }
+
+        int newStock = product.getStockQuantity() - quantity;
+        product.setStockQuantity(newStock);
+
+        if (newStock == 0) {
+            product.setAvailable(false);
+        }
+
+        productRepo.save(product);
+        System.out.println("Stock reduced for " + product.getName() + ": " + newStock + " remaining");
+    }
+
+    public void increaseStock(Long productId, int quantity) {
+        Product product = getProductById(productId);
+
+        int newStock = product.getStockQuantity() + quantity;
+        product.setStockQuantity(newStock);
+
+        if (newStock > 0 && !product.getAvailable()) {
+            product.setAvailable(true);
+        }
+
+        productRepo.save(product);
+        System.out.println("Stock increased for " + product.getName() + ": " + newStock + " available");
     }
 
 }

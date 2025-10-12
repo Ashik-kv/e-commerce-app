@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useState } from 'react'; // Added useState import
+import { useAppContext } from '../context/AppContext';
 
 export default function ProductModal({ product, onSave, onClose }) {
-    const { categories } = useContext(AppContext); // ✨ Get categories from context
+    const { categories } = useAppContext(); // Use the hook
     const [name, setName] = useState(product ? product.name : '');
     const [brand, setBrand] = useState(product ? product.brand : '');
     const [description, setDescription] = useState(product ? product.description : '');
@@ -10,7 +10,7 @@ export default function ProductModal({ product, onSave, onClose }) {
     const [discountPercentage, setDiscountPercentage] = useState(product ? product.discountPercentage : 0);
     const [stockQuantity, setStockQuantity] = useState(product ? product.stockQuantity : 1);
     const [images, setImages] = useState([]);
-    const [categoryId, setCategoryId] = useState(product && product.category ? product.category.id : ''); // ✨ Default to empty string
+    const [categoryId, setCategoryId] = useState(product && product.category ? product.category.id : '');
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -81,7 +81,6 @@ export default function ProductModal({ product, onSave, onClose }) {
                     {/* Price & Discount */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            {/* ✅ FIXED: Changed '($)' to '(₹)' for consistency */}
                             <label className="block text-sm font-medium text-gray-700">Original Price (₹)</label>
                             <input
                                 type="number"
@@ -120,22 +119,21 @@ export default function ProductModal({ product, onSave, onClose }) {
                             />
                         </div>
                         <div>
-                    {/* ✨ NEW: Category Dropdown */}
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                        value={categoryId}
-                        onChange={e => setCategoryId(e.target.value)}
-                        required
-                        className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                    >
-                        <option value="">Select a category</option>
-                        {categories.map(category => (
-                            <option key={category.id} value={category.id}>
-                                {category.categoryName} {/* ✅ CORRECTED LINE */}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                            <label className="block text-sm font-medium text-gray-700">Category</label>
+                            <select
+                                value={categoryId}
+                                onChange={e => setCategoryId(e.target.value)}
+                                required
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                            >
+                                <option value="">Select a category</option>
+                                {categories.map(category => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.categoryName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Product Images */}
@@ -149,7 +147,7 @@ export default function ProductModal({ product, onSave, onClose }) {
                                 onChange={handleImageChange}
                                 className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
                             />
-                             <div className="mt-2">
+                            <div className="mt-2">
                                 {images.map((image, index) => (
                                     <div key={index} className="flex justify-between items-center">
                                         <span>{image.name}</span>

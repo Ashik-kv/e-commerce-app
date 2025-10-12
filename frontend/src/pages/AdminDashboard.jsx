@@ -1,8 +1,8 @@
-import React, { useEffect, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 
 export default function AdminDashboard() {
-    const { users, products, currentUser, navigate, fetchUsers, promoteUserToSeller } = useContext(AppContext);
+    const { users, products, currentUser, navigate, fetchUsers, promoteUserToSeller } = useAppContext();
 
     useEffect(() => {
         if (currentUser?.roles?.includes('ROLE_ADMIN')) {
@@ -31,33 +31,33 @@ export default function AdminDashboard() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3">ID</th>
-                                    <th className="p-3">First Name</th>
-                                    <th className="p-3">Email</th>
-                                    <th className="p-3">Role</th>
-                                    <th className="p-3">Actions</th>
-                                </tr>
+                            <tr className="bg-gray-100">
+                                <th className="p-3">ID</th>
+                                <th className="p-3">First Name</th>
+                                <th className="p-3">Email</th>
+                                <th className="p-3">Role</th>
+                                <th className="p-3">Actions</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {users && users.map(user => (
-                                    <tr key={user.id} className="border-b">
-                                        <td className="p-3">{user.id}</td>
-                                        <td className="p-3">{user.firstName}</td>
-                                        <td className="p-3">{user.email}</td>
-                                        <td className="p-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'ROLE_ADMIN' ? 'bg-red-200 text-red-800' : user.role === 'ROLE_SELLER' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>{user.role}</span></td>
-                                        <td className="p-3">
-                                            {user.role !== 'ROLE_SELLER' && user.role !== 'ROLE_ADMIN' && (
-                                                <button 
-                                                    onClick={() => handlePromoteClick(user.id)}
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs font-semibold"
-                                                >
-                                                    Promote to Seller
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                            {users && users.map(user => (
+                                <tr key={user.id} className="border-b">
+                                    <td className="p-3">{user.id}</td>
+                                    <td className="p-3">{user.firstName}</td>
+                                    <td className="p-3">{user.email}</td>
+                                    <td className="p-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'ROLE_ADMIN' ? 'bg-red-200 text-red-800' : user.role === 'ROLE_SELLER' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>{user.role}</span></td>
+                                    <td className="p-3">
+                                        {user.role !== 'ROLE_SELLER' && user.role !== 'ROLE_ADMIN' && (
+                                            <button
+                                                onClick={() => handlePromoteClick(user.id)}
+                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs font-semibold"
+                                            >
+                                                Promote to Seller
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>

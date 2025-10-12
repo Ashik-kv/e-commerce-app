@@ -3,6 +3,7 @@ package org.ecommercesample.backend.service.impl;
 import org.ecommercesample.backend.dto.AddToCartRequest;
 import org.ecommercesample.backend.dto.CartItemResponse;
 import org.ecommercesample.backend.dto.CartResponse;
+import org.ecommercesample.backend.exceptions.InsufficientStockException;
 import org.ecommercesample.backend.exceptions.ResourceNotFoundException;
 import org.ecommercesample.backend.model.Cart;
 import org.ecommercesample.backend.model.CartItem;
@@ -50,8 +51,15 @@ public class CartServiceImpl implements CartService {
                 .findFirst()
                 .orElse(null);
 
+        int newQuantity = request.getQuantity();
         if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+            newQuantity += cartItem.getQuantity();
+        }
+        if(product.getStockQuantity()<newQuantity){
+            throw new InsufficientStockException("Not Enough Stock for product"+product.getName());
+        }
+        if (cartItem != null) {
+            cartItem.setQuantity(newQuantity);
         } else {
             cartItem = new CartItem();
             cartItem.setCart(cart);
@@ -73,7 +81,10 @@ public class CartServiceImpl implements CartService {
         if (!cartItem.getCart().getId().equals(cart.getId())) {
             throw new SecurityException("Cart item does not belong to this user");
         }
-
+        Product product=cartItem.getProduct();
+        if(product.getStockQuantity()<quantity){
+            throw new InsufficientStockException("Not Enough Stock for product"+product.getName());
+        }
         cartItem.setQuantity(quantity);
         cartItemRepo.save(cartItem);
         return mapCartToResponse(cart);

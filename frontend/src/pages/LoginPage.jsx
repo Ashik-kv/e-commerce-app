@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 import AuthForm from '../components/AuthForm';
 
 export default function LoginPage() {
-    const { login, navigate } = useContext(AppContext);
+    const { login, navigate } = useAppContext();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');

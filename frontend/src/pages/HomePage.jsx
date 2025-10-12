@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 import ProductCard from '../components/ProductCard';
 
 export default function HomePage() {
-    const { products } = useContext(AppContext);
+    const { products } = useAppContext();
     return (
         <div>
             <h1 className="text-4xl font-extrabold text-gray-800 mb-8">Featured Products</h1>

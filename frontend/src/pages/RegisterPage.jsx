@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 import AuthForm from '../components/AuthForm';
 
 export default function RegisterPage() {
-    const { register, navigate } = useContext(AppContext);
+    const { register, navigate } = useAppContext();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');

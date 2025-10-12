@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 import ProductModal from '../components/ProductModal';
 
 export default function SellerDashboard() {
-    const { products, currentUser, addProduct, updateProduct, deleteProduct, navigate } = useContext(AppContext);
+    const { products, currentUser, addProduct, updateProduct, deleteProduct, navigate } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
 
@@ -52,7 +52,6 @@ export default function SellerDashboard() {
                                         <img src={imageUrl} alt={product.name} className="w-16 h-16 object-cover rounded" />
                                         <div>
                                             <p className="font-bold">{product.name}</p>
-                                            {/* ✅ FIXED: Changed '$' to '₹' for consistency */}
                                             <p className="text-sm text-gray-500">₹{product.discountedPrice.toFixed(2)}</p>
                                             {product.category && (
                                                 <p className="text-xs text-gray-400">{product.category.name}</p>

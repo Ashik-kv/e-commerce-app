@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 
 export default function ProductCard({ product }) {
-    const { navigate } = useContext(AppContext);
+    const { navigate } = useAppContext();
     const imageUrl = product.images && product.images.length > 0
         ? `data:${product.images[0].imageType};base64,${product.images[0].imageFile}`
         : 'https://placehold.co/600x400/cccccc/ffffff?text=No+Image';

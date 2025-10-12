@@ -1,9 +1,9 @@
 // src/pages/ProductDetailPage.jsx
-import React, { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 
 export default function ProductDetailPage({ productId }) {
-    const { products, addToCart, navigate } = useContext(AppContext);
+    const { products, addToCart, navigate } = useAppContext();
     const product = products.find(p => p.id === productId);
 
     if (!product) {
@@ -33,7 +33,7 @@ export default function ProductDetailPage({ productId }) {
                     )}
                     <p className="text-sm text-gray-500 mb-4">Stock: {product.stockQuantity}</p>
                     <button
-                        onClick={() => addToCart(product)}
+                        onClick={() => addToCart(product.id)}
                         className="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition"
                     >
                         Add to Cart

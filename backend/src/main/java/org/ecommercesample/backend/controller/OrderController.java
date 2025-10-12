@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -40,5 +41,25 @@ public class OrderController {
     public ResponseEntity<OrderResponse> getOrderById(@AuthenticationPrincipal UserPrincipal userPrincipal,@PathVariable Long orderId) {
         Long userId=userPrincipal.getUser().getId();
         return ResponseEntity.ok(orderService.getOrderById(orderId,userId));
+    }
+
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<Map<String, String>> cancelOrder(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId) {
+        Long userId = userPrincipal.getUser().getId();
+
+        try {
+            orderService.cancelOrder(orderId, userId);
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Order cancelled successfully and stock restored"
+            ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", e.getMessage()
+            ));
+        }
     }
 }

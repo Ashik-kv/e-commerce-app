@@ -1,9 +1,8 @@
-// src/components/Navbar.jsx
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function Navbar() {
-    const { currentUser, navigate, logout, cart } = useAppContext();
+    const { currentUser, navigate, logout, cart, searchTerm, searchProducts } = useAppContext();
 
     const navLinkStyle = "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition";
 
@@ -14,6 +13,17 @@ export default function Navbar() {
                     <div className="text-2xl font-bold text-blue-600 cursor-pointer" onClick={() => navigate('home')}>
                         SpringCart
                     </div>
+
+                    <div className="flex-1 max-w-md mx-4">
+                        <input
+                            type="text"
+                            placeholder="Search for products..."
+                            value={searchTerm}
+                            onChange={(e) => searchProducts(e.target.value)}
+                            className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+
                     <div className="flex items-center space-x-2 md:space-x-4">
                         <button onClick={() => navigate('home')} className={navLinkStyle}>Home</button>
                         <button onClick={() => navigate('cart')} className={navLinkStyle}>

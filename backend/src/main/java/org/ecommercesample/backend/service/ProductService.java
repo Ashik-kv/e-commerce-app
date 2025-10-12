@@ -66,16 +66,15 @@ public class ProductService {
     }
 
     public void deleteProduct(Long productId){
-         if(!productRepo.existsById(productId)){
-             throw new ResourceNotFoundException("Product not found with id: " + productId);
-         }
-         productRepo.deleteById(productId);
+        if(!productRepo.existsById(productId)){
+            throw new ResourceNotFoundException("Product not found with id: " + productId);
+        }
+        productRepo.deleteById(productId);
     }
 
 
-    public Product getProductByKeyword(String keyword){
-        return productRepo.findByKeyword(keyword)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found for search :" + keyword));
+    public List<Product> getProductByKeyword(String keyword){
+        return productRepo.findByKeyword(keyword);
     }
 
     public List<Product> getFilteredProducts(Long categoryId, Double minPrice, Double maxPrice, String brand, String keyword) {
@@ -119,4 +118,3 @@ public class ProductService {
     }
 
 }
-

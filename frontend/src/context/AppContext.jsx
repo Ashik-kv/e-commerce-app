@@ -1,79 +1,98 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
-// This is the main context that will hold our state and functions
 export const AppContext = createContext();
+export const useAppContext = () => useContext(AppContext);
 
-// The AppProvider component is where all our logic and state will live.
 export const AppProvider = ({ children }) => {
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]); // ✨ NEW: Categories state
+    const [categories, setCategories] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedProductId, setSelectedProductId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [cart, setCart] = useState([]);
-    const [total, setTotal] = useState(0);
+    const [cart, setCart] = useState(null);
+    const [addresses, setAddresses] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const API_BASE_URL = 'http://localhost:8080';
 
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            setIsLoading(true);
-            try {
-                // Fetch products
-                const productsResponse = await fetch(`${API_BASE_URL}/api/products`);
-                if (productsResponse.ok) {
-                    const productsData = await productsResponse.json();
-                    setProducts(productsData);
-                } else {
-                    setProducts([]);
-                }
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    };
 
-                // ✨ NEW: Fetch categories
-                const categoriesResponse = await fetch(`${API_BASE_URL}/api/categories`);
-                if (categoriesResponse.ok) {
-                    const categoriesData = await categoriesResponse.json();
-                    setCategories(categoriesData);
-                } else {
-                    setCategories([]);
-                }
+    const fetchAllProducts = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/products`);
+            if (response.ok) setProducts(await response.json());
+        } catch (error) {
+            console.error("Failed to fetch products:", error);
+        }
+    };
 
-                const token = localStorage.getItem('authToken');
-                if (token) {
-                    try {
-                        const decodedToken = jwtDecode(token);
-                        setCurrentUser({
-                            email: decodedToken.sub,
-                            roles: decodedToken.roles || [],
-                        });
-                    } catch (error) {
-                        console.error("Invalid token:", error);
-                        localStorage.removeItem('authToken'); // Clear invalid token
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to fetch initial data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchInitialData();
-    }, []);
-
-    // ✨ NEW: Function to fetch categories (can be called separately if needed)
     const fetchCategories = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/categories`);
-            if (response.ok) {
-                const categoriesData = await response.json();
-                setCategories(categoriesData);
-            }
+            if (response.ok) setCategories(await response.json());
         } catch (error) {
             console.error("Failed to fetch categories:", error);
         }
     };
+
+    const fetchCart = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/cart`, { headers: getAuthHeaders() });
+            if (response.ok) setCart(await response.json());
+            else setCart({ cartItems: [] });
+        } catch (error) {
+            console.error("Failed to fetch cart:", error);
+        }
+    };
+
+    const fetchAddresses = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/addresses`, { headers: getAuthHeaders() });
+            if (response.ok) setAddresses(await response.json());
+        } catch (error) {
+            console.error("Failed to fetch addresses:", error);
+        }
+    };
+
+    const fetchOrders = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/orders`, { headers: getAuthHeaders() });
+            if (response.ok) setOrders(await response.json());
+        } catch (error) {
+            console.error("Failed to fetch orders:", error);
+        }
+    };
+
+
+    useEffect(() => {
+        const initialize = async () => {
+            setIsLoading(true);
+            await fetchAllProducts();
+            await fetchCategories();
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const decoded = jwtDecode(token);
+                    setCurrentUser({ email: decoded.sub, roles: decoded.roles || [] });
+                    await fetchCart();
+                    await fetchOrders();
+                    await fetchAddresses();
+                } catch (e) {
+                    console.error("Invalid token:", e);
+                    localStorage.removeItem('authToken');
+                }
+            }
+            setIsLoading(false);
+        };
+        initialize();
+    }, []);
 
     const login = async (email, password) => {
         try {
@@ -82,18 +101,16 @@ export const AppProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-
             if (!response.ok) return false;
 
-            const data = await response.json();
-            localStorage.setItem('authToken', data.token);
+            const { token } = await response.json();
+            localStorage.setItem('authToken', token);
+            const decoded = jwtDecode(token);
+            setCurrentUser({ email: decoded.sub, roles: decoded.roles || [] });
 
-            const decodedToken = jwtDecode(data.token);
-            console.log("Decoded JWT Token:", decodedToken); 
-            setCurrentUser({
-                email: decodedToken.sub,
-                roles: decodedToken.roles || [],
-            });
+            await fetchCart();
+            await fetchOrders();
+            await fetchAddresses();
 
             navigate('home');
             return true;
@@ -101,6 +118,26 @@ export const AppProvider = ({ children }) => {
             console.error("Login failed:", error);
             return false;
         }
+    };
+
+    const logout = async () => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                await fetch(`${API_BASE_URL}/logout`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+            } catch (error) {
+                console.error("Logout failed on backend:", error);
+            }
+        }
+        localStorage.removeItem('authToken');
+        setCurrentUser(null);
+        setCart(null);
+        setOrders([]);
+        setAddresses([]);
+        navigate('login');
     };
 
     const register = async (userData) => {
@@ -122,41 +159,19 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    const logout = async () => {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-            try {
-                await fetch(`${API_BASE_URL}/logout`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-            } catch (error) {
-                console.error("Logout failed on backend:", error);
-            }
-        }
-        setCurrentUser(null);
-        localStorage.removeItem('authToken');
-        navigate('home');
-    };
-
     const addProduct = async (productData, images) => {
-        try {
-            const token = localStorage.getItem('authToken');
-            const formData = new FormData();
-            formData.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }));
-            images.forEach(image => {
-                formData.append('images', image);
-            });
+        const formData = new FormData();
+        formData.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }));
+        images.forEach(image => formData.append('images', image));
 
+        try {
             const response = await fetch(`${API_BASE_URL}/api/seller/products`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: getAuthHeaders(),
                 body: formData
             });
-
             if (response.ok) {
-                const newProduct = await response.json();
-                setProducts(prev => [...prev, newProduct]);
+                await fetchAllProducts();
                 return true;
             }
             return false;
@@ -168,18 +183,13 @@ export const AppProvider = ({ children }) => {
 
     const updateProduct = async (productId, productDetails) => {
         try {
-            const token = localStorage.getItem('authToken');
             const response = await fetch(`${API_BASE_URL}/api/seller/products/${productId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify(productDetails)
             });
             if (response.ok) {
-                const returnedProduct = await response.json();
-                setProducts(products.map(p => p.id === returnedProduct.id ? returnedProduct : p));
+                await fetchAllProducts();
                 return true;
             }
             return false;
@@ -191,10 +201,9 @@ export const AppProvider = ({ children }) => {
 
     const deleteProduct = async (productId) => {
         try {
-            const token = localStorage.getItem('authToken');
             const response = await fetch(`${API_BASE_URL}/api/seller/products/${productId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: getAuthHeaders()
             });
             if (response.ok) {
                 setProducts(products.filter(p => p.id !== productId));
@@ -204,16 +213,34 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const increaseStock = async (productId, quantity) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/seller/products/${productId}/stock/increase?quantity=${quantity}`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) await fetchAllProducts();
+        } catch (error) {
+            console.error("Failed to increase stock", error);
+        }
+    };
+
+    const reduceStock = async (productId, quantity) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/seller/products/${productId}/stock/reduce?quantity=${quantity}`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) await fetchAllProducts();
+        } catch (error) {
+            console.error("Failed to reduce stock", error);
+        }
+    };
+
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const usersData = await response.json();
-                setUsers(usersData);
-            }
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, { headers: getAuthHeaders() });
+            if (response.ok) setUsers(await response.json());
         } catch (error) {
             console.error("Failed to fetch users:", error);
         }
@@ -221,16 +248,12 @@ export const AppProvider = ({ children }) => {
 
     const promoteUserToSeller = async (userId) => {
         try {
-            const token = localStorage.getItem('authToken');
             const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/promote`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: getAuthHeaders()
             });
-
             if (response.ok) {
-                setUsers(users.map(user =>
-                    user.id === userId ? { ...user, role: 'ROLE_SELLER' } : user
-                ));
+                setUsers(users.map(user => user.id === userId ? { ...user, role: 'ROLE_SELLER' } : user));
                 return true;
             }
             return false;
@@ -240,53 +263,131 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    const navigate = (page, productId = null) => {
-        setCurrentPage(page);
-        setSelectedProductId(productId);
-    };
-
-    const addToCart = (product) => {
-        const existingItem = cart.find(item => item.id === product.id);
-        if (existingItem) {
-            setCart(cart.map(item =>
-                item.id === product.id 
-                  ? {...item, quantity: item.quantity + 1}
-                  : item
-            ));
-        } else {
-            setCart([...cart, {...product, quantity: 1}]);
+    const addToCart = async (productId, quantity = 1) => {
+        if (!currentUser) return navigate('login');
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/cart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ productId, quantity })
+            });
+            if (response.ok) setCart(await response.json());
+        } catch (error) {
+            console.error("Failed to add to cart:", error);
         }
-        updateTotal();
     };
 
-    const removeFromCart = (productId) => {
-        setCart(cart.filter(item => item.id !== productId));
-        updateTotal();
+    const removeFromCart = async (cartItemId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/cart/${cartItemId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) await fetchCart();
+        } catch (error) {
+            console.error("Failed to remove from cart:", error);
+        }
     };
 
-    const updateTotal = () => {
-        const newTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        setTotal(newTotal);
+    const updateCartItemQuantity = async (cartItemId, quantity) => {
+        if (quantity < 1) return removeFromCart(cartItemId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/cart/${cartItemId}?quantity=${quantity}`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) setCart(await response.json());
+        } catch (error) {
+            console.error("Failed to update cart quantity:", error);
+        }
+    };
+
+    const addAddress = async (addressData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/addresses`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(addressData)
+            });
+            if (response.ok) {
+                await fetchAddresses();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Failed to add address:", error);
+            return false;
+        }
+    };
+
+    const createOrder = async (shippingAddressId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ shippingAddressId })
+            });
+            if (response.ok) {
+                setCart({ cartItems: [] });
+                await fetchOrders();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Failed to create order:", error);
+            return false;
+        }
+    };
+
+    const cancelOrder = async (orderId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                await fetchOrders();
+                return true;
+            }
+            const errorData = await response.json();
+            alert(errorData.message || "Failed to cancel order.");
+            return false;
+        } catch (error) {
+            console.error("Failed to cancel order", error);
+            return false;
+        }
+    };
+
+    const searchProducts = async (term) => {
+        setSearchTerm(term);
+        if (!term) return fetchAllProducts();
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/products?keyword=${term}`);
+            setProducts(response.ok ? await response.json() : []);
+        } catch (error) {
+            console.error("Failed to search products:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const fetchFilteredProducts = async (filters) => {
-        const { keyword, category, brand, minPrice, maxPrice } = filters;
         const queryParams = new URLSearchParams();
-        if (keyword) queryParams.append('keyword', keyword);
-        if (category) queryParams.append('categoryId', category);
-        if (brand) queryParams.append('brand', brand);
-        if (minPrice) queryParams.append('minPrice', minPrice);
-        if (maxPrice) queryParams.append('maxPrice', maxPrice);
+        if (filters.keyword) queryParams.append('keyword', filters.keyword);
+        if (filters.category) queryParams.append('categoryId', filters.category);
+        if (filters.brand) queryParams.append('brand', filters.brand);
+        if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
+        if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+
+        if (queryParams.toString() === "") {
+            return fetchAllProducts();
+        }
 
         setIsLoading(true);
         try {
             const response = await fetch(`${API_BASE_URL}/api/products?${queryParams.toString()}`);
-            if (response.ok) {
-                const productsData = await response.json();
-                setProducts(productsData);
-            } else {
-                setProducts([]);
-            }
+            setProducts(response.ok ? await response.json() : []);
         } catch (error) {
             console.error("Failed to fetch filtered products:", error);
         } finally {
@@ -294,10 +395,16 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const navigate = (page, id = null) => {
+        setCurrentPage(page);
+        setSelectedProductId(id);
+    };
+
     const value = {
-        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, total, // ✨ Added categories to context
-        login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers,
-        promoteUserToSeller, fetchCategories, addToCart, removeFromCart, fetchFilteredProducts, // ✨ Added fetchCategories to context
+        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, searchTerm,
+        login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
+        fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, fetchFilteredProducts, addAddress,
+        fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock, searchProducts
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

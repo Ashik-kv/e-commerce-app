@@ -43,7 +43,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderById(orderId,userId));
     }
 
-    @PutMapping("/{orderId}/cancel")
+    @PutMapping("/orders/{orderId}/cancel")
     public ResponseEntity<Map<String, String>> cancelOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {

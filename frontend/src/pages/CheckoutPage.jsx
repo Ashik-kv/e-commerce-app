@@ -66,7 +66,7 @@ const CheckoutPage = () => {
                 <select
                     value={selectedAddressId}
                     onChange={(e) => setSelectedAddressId(e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded bg-white text-black"
                 >
                   <option value="">Select an address</option>
                   {addresses.map(address => (

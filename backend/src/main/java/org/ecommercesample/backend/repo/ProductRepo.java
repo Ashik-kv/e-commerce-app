@@ -60,8 +60,8 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
             "(:minPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) >= :minPrice) AND " +
             "(:maxPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) <= :maxPrice) AND " +
             "(:available IS NULL OR p.available = :available) AND " +
-            "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "(:brand IS NULL OR LOWER(p.brand) LIKE LOWER(CONCAT('%', :brand, '%')))")
+            "(:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "(:brand IS NULL OR :brand = '' OR LOWER(p.brand) LIKE LOWER(CONCAT('%', :brand, '%')))")
     List<Product> findProductsByCriteria(
             @Param("categoryId") Long categoryId,
             @Param("minPrice") Double minPrice,
@@ -85,8 +85,8 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
     // Find product by keyword
     @Query("SELECT p FROM Product p WHERE " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(p.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(p.category.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(p.brand) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Optional<Product> findByKeyword(@Param("keyword") String keyword);
+    List<Product> findByKeyword(@Param("keyword") String keyword);
 }

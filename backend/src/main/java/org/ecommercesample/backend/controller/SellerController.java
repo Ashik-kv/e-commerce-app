@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/seller/products")
@@ -111,5 +112,96 @@ public class SellerController {
             return ResponseEntity.notFound().build();
         }
 
+    }
+    @PutMapping("/{productId}/stock/increase")
+    public ResponseEntity<Map<String, Object>> increaseStock(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+
+        if (quantity <= 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Quantity must be greater than 0"
+            ));
+        }
+
+        try {
+            productService.increaseStock(productId, quantity);
+            Product updatedProduct = productService.getProductById(productId);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Stock increased successfully",
+                    "productId", productId,
+                    "newStockQuantity", updatedProduct.getStockQuantity(),
+                    "isAvailable", updatedProduct.getAvailable()
+            ));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    @PutMapping("/{productId}/stock/reduce")
+    public ResponseEntity<Map<String, Object>> reduceStock(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+
+        if (quantity <= 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Quantity must be greater than 0"
+            ));
+        }
+
+        try {
+            productService.reduceStock(productId, quantity);
+            Product updatedProduct = productService.getProductById(productId);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Stock reduced successfully",
+                    "productId", productId,
+                    "newStockQuantity", updatedProduct.getStockQuantity(),
+                    "isAvailable", updatedProduct.getAvailable()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+
+    @PutMapping("/{productId}/stock")
+    public ResponseEntity<Map<String, Object>> setStockQuantity(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+
+        if (quantity < 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Quantity cannot be negative"
+            ));
+        }
+
+        try {
+            Product product = productService.getProductById(productId);
+            product.setStockQuantity(quantity);
+            product.setAvailable(quantity > 0);
+
+            Product updatedProduct = productService.saveProduct(product);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Stock quantity updated successfully",
+                    "productId", productId,
+                    "newStockQuantity", updatedProduct.getStockQuantity(),
+                    "isAvailable", updatedProduct.getAvailable()
+            ));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

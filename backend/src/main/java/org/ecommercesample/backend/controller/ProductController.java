@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -42,9 +43,9 @@ public class ProductController {
     }
 
     @GetMapping("/search/{keyword}")
-    public ResponseEntity<Product> searchProductByKeyword(@PathVariable String keyword){
+    public ResponseEntity<List<Product>> searchProductByKeyword(@PathVariable String keyword){
         try{
-            Product product=productService.getProductByKeyword(keyword);
+            List<Product> product=productService.getProductByKeyword(keyword);
             return ResponseEntity.ok(product);
         }
         catch (ResourceNotFoundException e){
@@ -53,3 +54,4 @@ public class ProductController {
     }
 
 }
+

@@ -3,6 +3,7 @@ package org.ecommercesample.backend.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -53,10 +54,11 @@ public class SecurityConfig {
                     return corsConfig;
                 }))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/register","/login","/api/products","/api/categories/**").permitAll()
-                        .requestMatchers("/api/seller/**").hasAuthority("ROLE_SELLER") 
+                        .requestMatchers("/register", "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
+                        .requestMatchers("/api/seller/**").hasAuthority("ROLE_SELLER")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/cart/**","/api/orders/**","/api/addresses/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/api/cart/**","/api/orders/**","/api/addresses/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

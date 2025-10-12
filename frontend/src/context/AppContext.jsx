@@ -269,10 +269,35 @@ export const AppProvider = ({ children }) => {
         setTotal(newTotal);
     };
 
+    const fetchFilteredProducts = async (filters) => {
+        const { keyword, category, brand, minPrice, maxPrice } = filters;
+        const queryParams = new URLSearchParams();
+        if (keyword) queryParams.append('keyword', keyword);
+        if (category) queryParams.append('categoryId', category);
+        if (brand) queryParams.append('brand', brand);
+        if (minPrice) queryParams.append('minPrice', minPrice);
+        if (maxPrice) queryParams.append('maxPrice', maxPrice);
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/products?${queryParams.toString()}`);
+            if (response.ok) {
+                const productsData = await response.json();
+                setProducts(productsData);
+            } else {
+                setProducts([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch filtered products:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const value = {
         users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, total, // ✨ Added categories to context
         login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers,
-        promoteUserToSeller, fetchCategories, addToCart, removeFromCart, // ✨ Added fetchCategories to context
+        promoteUserToSeller, fetchCategories, addToCart, removeFromCart, fetchFilteredProducts, // ✨ Added fetchCategories to context
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

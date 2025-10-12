@@ -60,13 +60,15 @@ public interface ProductRepo extends JpaRepository<Product,Long> {
             "(:minPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) >= :minPrice) AND " +
             "(:maxPrice IS NULL OR (p.originalPrice * (1 - COALESCE(p.discountPercentage, 0) / 100.0)) <= :maxPrice) AND " +
             "(:available IS NULL OR p.available = :available) AND " +
-            "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "(:brand IS NULL OR LOWER(p.brand) LIKE LOWER(CONCAT('%', :brand, '%')))")
     List<Product> findProductsByCriteria(
             @Param("categoryId") Long categoryId,
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice,
             @Param("available") Boolean available,
-            @Param("keyword") String keyword
+            @Param("keyword") String keyword,
+            @Param("brand") String brand
     );
 
     // Count products by category

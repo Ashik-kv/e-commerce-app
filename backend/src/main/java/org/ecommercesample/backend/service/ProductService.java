@@ -77,4 +77,7 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found for search :" + keyword));
     }
 
+    public List<Product> getFilteredProducts(Long categoryId, Double minPrice, Double maxPrice, String brand, String keyword) {
+        return productRepo.findProductsByCriteria(categoryId, minPrice, maxPrice, true, keyword, brand);
+    }
 }

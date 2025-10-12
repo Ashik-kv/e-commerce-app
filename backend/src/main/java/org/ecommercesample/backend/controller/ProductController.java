@@ -18,7 +18,15 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public List<Product> viewAllProducts(){
+    public List<Product> viewAllProducts(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String keyword) {
+        if (categoryId != null || minPrice != null || maxPrice != null || brand != null || keyword != null) {
+            return productService.getFilteredProducts(categoryId, minPrice, maxPrice, brand, keyword);
+        }
         return productService.getAllProducts();
     }
 

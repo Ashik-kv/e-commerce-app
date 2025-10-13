@@ -37,7 +37,7 @@ export default function ProductDetailPage({ productId }) {
                         <img
                             src={mainImageUrl}
                             alt={`${product.name} - image ${currentImageIndex + 1}`}
-                            className="w-full h-auto object-cover rounded-lg"
+                            className="w-full h-auto object-contain rounded-lg"
                             style={{ aspectRatio: '1 / 1' }} // Enforces a square aspect ratio
                         />
                         {hasImages && product.images.length > 1 && (
@@ -65,7 +65,7 @@ export default function ProductDetailPage({ productId }) {
                                     key={index}
                                     src={`data:${image.imageType};base64,${image.imageFile}`}
                                     alt={`${product.name} thumbnail ${index + 1}`}
-                                    className={`w-20 h-20 object-cover rounded-md cursor-pointer border-2 ${currentImageIndex === index ? 'border-blue-500' : 'border-transparent'}`}
+                                    className={`w-20 h-20 object-contain rounded-md cursor-pointer border-2 ${currentImageIndex === index ? 'border-blue-500' : 'border-transparent'}`}
                                     style={{ aspectRatio: '1 / 1' }} // Enforces a square aspect ratio for thumbnails
                                     onClick={() => setCurrentImageIndex(index)}
                                 />

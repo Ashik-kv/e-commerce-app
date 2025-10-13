@@ -27,6 +27,7 @@ public class AdminController {
         try {
             User user = userService.getUserById(userId);
             user.setRole(ERole.ROLE_SELLER);
+            System.out.println("in promoteUserToSeller");
             userService.saveUser(user);
             return ResponseEntity.ok("User promoted to seller successfully");
         } catch (Exception e) {

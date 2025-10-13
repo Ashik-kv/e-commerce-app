@@ -16,6 +16,7 @@ export const AppProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
     const [addresses, setAddresses] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [allOrders, setAllOrders] = useState([]); // New state for all orders (for seller/admin)
     // MODIFICATION: Added state to manage the address selection flow for checkout.
     const [isAddressSelectionMode, setIsAddressSelectionMode] = useState(false);
     const [selectedAddressId, setSelectedAddressId] = useState('');
@@ -115,18 +116,30 @@ export const AppProvider = ({ children }) => {
     const fetchCart = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/cart`, { headers: getAuthHeaders() });
-            if (response.ok) setCart(await response.json());
-            else setCart({ cartItems: [] });
+            if (response.ok) {
+                const text = await response.text();
+                // Attempt to parse the text as JSON
+                try {
+                    const data = JSON.parse(text);
+                    setCart(data);
+                } catch (e) {
+                    console.error("Failed to parse cart JSON:", text);
+                    setCart({ cartItems: [] });
+                }
+            } else {
+                setCart({ cartItems: [] });
+            }
         } catch (error) {
             console.error("Failed to fetch cart:", error);
         }
     };
 
+
     const fetchAddresses = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/addresses`, { headers: getAuthHeaders() });
             if (response.ok) setAddresses(await response.json());
-        } catch (error) {
+        } catch (error)            {
             console.error("Failed to fetch addresses:", error);
         }
     };
@@ -137,6 +150,22 @@ export const AppProvider = ({ children }) => {
             if (response.ok) setOrders(await response.json());
         } catch (error) {
             console.error("Failed to fetch orders:", error);
+        }
+    };
+
+    // New function to fetch all orders for seller/admin
+    const fetchAllOrders = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/seller/orders`, { headers: getAuthHeaders() });
+            if (!response.ok) {
+                // Throw an error to be caught by the calling function
+                throw new Error(`Failed to fetch all orders. Status: ${response.status}`);
+            }
+            if (response.ok) setAllOrders(await response.json());
+        } catch (error) {
+            console.error("Failed to fetch all orders:", error);
+            // Optionally, update state to indicate an error
+            setAllOrders([]);
         }
     };
 
@@ -278,6 +307,25 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    // New function to update order status
+    const updateOrderStatus = async (orderId, status) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/seller/orders/${orderId}/status?status=${status}`, {
+                method: 'PUT',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                fetchAllOrders(); // refresh orders
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Failed to update order status:", error);
+            return false;
+        }
+    };
+
+
     const deleteProduct = async (productId) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/seller/products/${productId}`, {
@@ -329,18 +377,21 @@ export const AppProvider = ({ children }) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/promote`, {
                 method: 'PUT',
-                headers: getAuthHeaders()
+                headers: getAuthHeaders(),
             });
             if (response.ok) {
                 setUsers(users.map(user => user.id === userId ? { ...user, role: 'ROLE_SELLER' } : user));
-                return true;
+                return { success: true };
             }
-            return false;
+            // If the response is not OK, try to parse an error message
+            const errorData = await response.json().catch(() => ({ message: "An unknown error occurred." }));
+            return { success: false, error: errorData.message };
         } catch (error) {
             console.error("Failed to promote user:", error);
-            return false;
+            return { success: false, error: error.message };
         }
     };
+
 
     const addToCart = async (productId, quantity = 1) => {
         if (!currentUser) return navigate('login');
@@ -487,13 +538,13 @@ export const AppProvider = ({ children }) => {
 
 
     const value = {
-        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters,
+        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters, allOrders,
         // MODIFICATION: Exposing new state and functions to the context.
         isAddressSelectionMode, selectedAddressId, setSelectedAddressId,
         login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
         fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress,
         fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock,
-        startAddressSelection, selectAddressAndReturn
+        startAddressSelection, selectAddressAndReturn, fetchAllOrders, updateOrderStatus
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

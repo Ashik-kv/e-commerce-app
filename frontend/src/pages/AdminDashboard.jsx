@@ -15,9 +15,9 @@ export default function AdminDashboard() {
     }
 
     const handlePromoteClick = async (userId) => {
-        const success = await promoteUserToSeller(userId);
-        if (!success) {
-            alert("Failed to promote user. Please check console for errors.");
+        const result = await promoteUserToSeller(userId);
+        if (!result.success) {
+            alert(`Failed to promote user: ${result.error}`);
         }
     };
 

@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick, isSidebarOpen }) {
     const { currentUser, navigate, logout, cart, filters, updateFilters } = useAppContext();
     const [searchTerm, setSearchTerm] = useState(filters.keyword || "");
     const navLinkStyle = "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition";
@@ -17,8 +17,19 @@ export default function Navbar() {
 
     return (
         <nav className="bg-white shadow-md">
-            <div className="px-4 md:px-8">
+            <div className="px-4 md-px-8">
                 <div className="flex justify-between items-center py-4">
+                    {currentUser?.roles?.includes('ROLE_SELLER') && (
+                        <button onClick={onMenuClick} className="p-2 mr-2 text-gray-600 hover:text-blue-600 bg-transparent">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {isSidebarOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                )}
+                            </svg>
+                        </button>
+                    )}
                     <div
                         className="text-2xl font-bold text-blue-600 cursor-pointer"
                         onClick={() => navigate("home")}

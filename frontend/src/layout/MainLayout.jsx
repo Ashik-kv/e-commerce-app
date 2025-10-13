@@ -1,8 +1,9 @@
 // src/layout/MainLayout.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Sidebar from '../components/Sidebar';
 import HomePage from '../pages/HomePage';
 import ProductDetailPage from '../pages/ProductDetailPage';
 import LoginPage from '../pages/LoginPage';
@@ -14,6 +15,7 @@ import CheckoutPage from '../pages/CheckoutPage';
 import AddressPage from '../pages/AddressPage';
 import OrderHistoryPage from '../pages/OrderHistoryPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
+import ManageOrdersPage from '../pages/ManageOrdersPage';
 import './mainlayout.css'
 
 function PageContent() {
@@ -31,14 +33,20 @@ function PageContent() {
         case 'addresses': return <AddressPage />;
         case 'order-history': return <OrderHistoryPage />;
         case 'order-detail': return <OrderDetailPage orderId={selectedProductId} />;
+        case 'manage-orders': return <ManageOrdersPage />;
         default: return <HomePage />;
     }
 }
 
 export default function MainLayout() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const { currentUser } = useAppContext();
+    const isSeller = currentUser?.roles?.includes('ROLE_SELLER');
+
     return (
         <div className="layout">
-            <Navbar />
+            <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
+            {isSeller && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
             <main className="p-4 md:p-8">
                 <PageContent />
             </main>

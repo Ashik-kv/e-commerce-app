@@ -126,6 +126,7 @@ public class CartServiceImpl implements CartService {
         response.setQuantity(cartItem.getQuantity());
         response.setPrice(cartItem.getProduct().getDiscountedPrice());
         response.setSubtotal(cartItem.getSubtotal());
+        response.setProduct(cartItem.getProduct());
         return response;
     }
 }

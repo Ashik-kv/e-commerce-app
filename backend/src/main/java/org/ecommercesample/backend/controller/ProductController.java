@@ -24,10 +24,23 @@ public class ProductController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String keyword) {
-        if (categoryId != null || minPrice != null || maxPrice != null || brand != null || keyword != null) {
-            return productService.getFilteredProducts(categoryId, minPrice, maxPrice, brand, keyword);
-        }
+            @RequestParam(required = false) String keyword,
+            // ✨ ADD THIS LINE
+            @RequestParam(required = false) Boolean available) {
+
+//        boolean hasFilters = (categoryId != null)
+//                || (minPrice != null)
+//                || (maxPrice != null)
+//                || (brand != null && !brand.trim().isEmpty())
+//                || (keyword != null && !keyword.trim().isEmpty())
+//                // ✨ ADD THIS LINE
+//                || (available != null);
+//
+//        if (hasFilters) {
+//            // ✨ UPDATE THIS LINE to pass the 'available' parameter
+//            return productService.getFilteredProducts(categoryId, minPrice, maxPrice, keyword, brand, available);
+//
+//        }
         return productService.getAllProducts();
     }
 

@@ -74,12 +74,18 @@ public class ProductService {
 
 
     public List<Product> getProductByKeyword(String keyword){
+        System.out.println("Inside getProductByKeyword");
         return productRepo.findByKeyword(keyword);
     }
 
-    public List<Product> getFilteredProducts(Long categoryId, Double minPrice, Double maxPrice, String brand, String keyword) {
-        return productRepo.findProductsByCriteria(categoryId, minPrice, maxPrice, true, keyword, brand);
-    }
+//    public List<Product> getFilteredProducts(Long categoryId, Double minPrice, Double maxPrice, String keyword, String brand, Boolean available)
+//    {
+//        // If the frontend doesn't specify availability, we can default to true
+//        Boolean searchAvailability = (available == null) ? true : available;
+//
+//        // ✨ UPDATE THE METHOD CALL
+//        return productRepo.findProductsByCriteria(categoryId, minPrice, maxPrice, searchAvailability, keyword, brand);
+//    }
 
     public void reduceStock(Long productId, int quantity) {
         Product product = getProductById(productId);

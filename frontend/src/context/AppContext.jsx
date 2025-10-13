@@ -1,3 +1,4 @@
+// src/context/AppContext.jsx
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
@@ -15,7 +16,19 @@ export const AppProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
     const [addresses, setAddresses] = useState([]);
     const [orders, setOrders] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    // MODIFICATION: Added state to manage the address selection flow for checkout.
+    const [isAddressSelectionMode, setIsAddressSelectionMode] = useState(false);
+    const [selectedAddressId, setSelectedAddressId] = useState('');
+
+
+    // Centralized filters state for both search and filtering
+    const [filters, setFilters] = useState({
+        keyword: '',
+        category: '',
+        brand: '',
+        minPrice: '',
+        maxPrice: ''
+    });
 
     const API_BASE_URL = 'http://localhost:8080';
 
@@ -24,14 +37,71 @@ export const AppProvider = ({ children }) => {
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     };
 
-    const fetchAllProducts = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/products`);
-            if (response.ok) setProducts(await response.json());
-        } catch (error) {
-            console.error("Failed to fetch products:", error);
-        }
-    };
+    // ✨ HOOK TO SYNC WITH BROWSER HISTORY (FOR GESTURES)
+    useEffect(() => {
+        // This function handles the browser's back/forward events
+        const handlePopState = (event) => {
+            if (event.state) {
+                const { page, id } = event.state;
+                setCurrentPage(page || 'home');
+                setSelectedProductId(id || null);
+            }
+        };
+
+        // Listen for popstate events
+        window.addEventListener('popstate', handlePopState);
+
+        // Replace the initial empty state with our home page state
+        window.history.replaceState({ page: 'home', id: null }, '', window.location.pathname);
+
+        // Cleanup listener on component unmount
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []); // Empty array ensures this runs only once on mount
+
+    // This useEffect hook now handles all product fetching whenever filters change
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setIsLoading(true);
+            try {
+                let url;
+                const trimmedKeyword = filters.keyword?.trim();
+
+                if (trimmedKeyword) {
+                    // Use the dedicated search endpoint when a keyword is provided
+                    url = `${API_BASE_URL}/api/products/search/${encodeURIComponent(trimmedKeyword)}`;
+                } else {
+                    // Otherwise, use the general endpoint with other filters
+                    const queryParams = new URLSearchParams();
+                    if (filters.category) queryParams.append('categoryId', filters.category);
+                    if (filters.brand?.trim()) queryParams.append('brand', filters.brand.trim());
+                    if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
+                    if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
+
+                    const queryString = queryParams.toString();
+                    url = `${API_BASE_URL}/api/products${queryString ? `?${queryString}` : ''}`;
+                }
+
+                const response = await fetch(url);
+                const data = response.ok ? await response.json() : [];
+                setProducts(data);
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+                setProducts([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        // Debounce the fetch call to avoid excessive API requests while typing
+        const debounceFetch = setTimeout(() => {
+            fetchProducts();
+        }, 500); // Wait 500ms after the last filter change before fetching
+
+        return () => clearTimeout(debounceFetch); // Cleanup timeout on re-render
+    }, [filters]);
+
 
     const fetchCategories = async () => {
         try {
@@ -74,7 +144,7 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         const initialize = async () => {
             setIsLoading(true);
-            await fetchAllProducts();
+            // Initial product fetch is now handled by the filter effect
             await fetchCategories();
             const token = localStorage.getItem('authToken');
             if (token) {
@@ -159,6 +229,15 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    // Function to update filters from any component
+    const updateFilters = (newFilters) => {
+        // If there's a new keyword that is different from the old one, and we are not on the home page, navigate to home.
+        if (newFilters.keyword !== undefined && newFilters.keyword !== filters.keyword && currentPage !== 'home') {
+            navigate('home');
+        }
+        setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
+    };
+
     const addProduct = async (productData, images) => {
         const formData = new FormData();
         formData.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }));
@@ -171,7 +250,7 @@ export const AppProvider = ({ children }) => {
                 body: formData
             });
             if (response.ok) {
-                await fetchAllProducts();
+                setFilters({}); // refresh products
                 return true;
             }
             return false;
@@ -189,7 +268,7 @@ export const AppProvider = ({ children }) => {
                 body: JSON.stringify(productDetails)
             });
             if (response.ok) {
-                await fetchAllProducts();
+                setFilters({}); // refresh products
                 return true;
             }
             return false;
@@ -219,7 +298,7 @@ export const AppProvider = ({ children }) => {
                 method: 'PUT',
                 headers: getAuthHeaders()
             });
-            if (response.ok) await fetchAllProducts();
+            if (response.ok) setFilters({}); // refresh products
         } catch (error) {
             console.error("Failed to increase stock", error);
         }
@@ -231,7 +310,7 @@ export const AppProvider = ({ children }) => {
                 method: 'PUT',
                 headers: getAuthHeaders()
             });
-            if (response.ok) await fetchAllProducts();
+            if (response.ok) setFilters({}); // refresh products
         } catch (error) {
             console.error("Failed to reduce stock", error);
         }
@@ -302,6 +381,7 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    // MODIFICATION: The 'addAddress' function now handles detailed validation errors from the backend.
     const addAddress = async (addressData) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/addresses`, {
@@ -311,17 +391,23 @@ export const AppProvider = ({ children }) => {
             });
             if (response.ok) {
                 await fetchAddresses();
-                return true;
+                return { success: true };
             }
-            return false;
+            // If the server returns a validation error, it will be in the response body.
+            const errorData = await response.json();
+            return { success: false, errors: errorData.errors || { general: "Failed to add address." } };
+
         } catch (error) {
             console.error("Failed to add address:", error);
-            return false;
+            return { success: false, errors: { general: "An unexpected error occurred." } };
         }
     };
 
+
     const createOrder = async (shippingAddressId) => {
         try {
+            // MODIFICATION: The items in the cart before placing the order are stored.
+            const cartItemsBeforeOrder = [...cart.cartItems];
             const response = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
@@ -330,6 +416,16 @@ export const AppProvider = ({ children }) => {
             if (response.ok) {
                 setCart({ cartItems: [] });
                 await fetchOrders();
+                // MODIFICATION: After a successful order, the stock of the ordered products is updated in the local state.
+                setProducts(prevProducts =>
+                    prevProducts.map(p => {
+                        const orderedItem = cartItemsBeforeOrder.find(item => item.productId === p.id);
+                        if (orderedItem) {
+                            return { ...p, stockQuantity: p.stockQuantity - orderedItem.quantity };
+                        }
+                        return p;
+                    })
+                );
                 return true;
             }
             return false;
@@ -358,53 +454,46 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-    const searchProducts = async (term) => {
-        setSearchTerm(term);
-        if (!term) return fetchAllProducts();
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/products?keyword=${term}`);
-            setProducts(response.ok ? await response.json() : []);
-        } catch (error) {
-            console.error("Failed to search products:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchFilteredProducts = async (filters) => {
-        const queryParams = new URLSearchParams();
-        if (filters.keyword) queryParams.append('keyword', filters.keyword);
-        if (filters.category) queryParams.append('categoryId', filters.category);
-        if (filters.brand) queryParams.append('brand', filters.brand);
-        if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
-        if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
-
-        if (queryParams.toString() === "") {
-            return fetchAllProducts();
-        }
-
-        setIsLoading(true);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/products?${queryParams.toString()}`);
-            setProducts(response.ok ? await response.json() : []);
-        } catch (error) {
-            console.error("Failed to fetch filtered products:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    // ✨ MODIFIED navigate FUNCTION TO UPDATE BROWSER HISTORY
     const navigate = (page, id = null) => {
+        const state = { page, id };
+        let path = `/${page}`;
+        if (page === 'product' && id) {
+            path += `/${id}`;
+        } else if (page === 'home') {
+            path = '/';
+        }
+
+        // This pushes a new state to the browser's history stack
+        window.history.pushState(state, '', path);
+
+        // This updates the app's internal state
         setCurrentPage(page);
         setSelectedProductId(id);
     };
 
+    // MODIFICATION: New function to handle the start of the address selection process.
+    const startAddressSelection = () => {
+        setIsAddressSelectionMode(true);
+        navigate('addresses');
+    };
+
+    // MODIFICATION: New function to handle the selection of an address and return to checkout.
+    const selectAddressAndReturn = (addressId) => {
+        setSelectedAddressId(addressId);
+        setIsAddressSelectionMode(false);
+        navigate('checkout');
+    };
+
+
     const value = {
-        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, searchTerm,
+        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters,
+        // MODIFICATION: Exposing new state and functions to the context.
+        isAddressSelectionMode, selectedAddressId, setSelectedAddressId,
         login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
-        fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, fetchFilteredProducts, addAddress,
-        fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock, searchProducts
+        fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress,
+        fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock,
+        startAddressSelection, selectAddressAndReturn
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

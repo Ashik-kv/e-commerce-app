@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // Added useState import
+// src/components/ProductModal.jsx
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function ProductModal({ product, onSave, onClose }) {
@@ -44,55 +45,55 @@ export default function ProductModal({ product, onSave, onClose }) {
 
                     {/* Product Name */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Product Name</label>
+                        <label className="block text-sm font-medium text-gray-700">Product Name <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
                             required
-                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                         />
                     </div>
 
                     {/* Brand */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Brand</label>
+                        <label className="block text-sm font-medium text-gray-700">Brand <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             value={brand}
                             onChange={e => setBrand(e.target.value)}
                             required
-                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                         />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                        <label className="block text-sm font-medium text-gray-700">Description <span className="text-red-500">*</span></label>
                         <textarea
                             rows="3"
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             required
-                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                         ></textarea>
                     </div>
 
                     {/* Price & Discount */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Original Price (₹)</label>
+                            <label className="block text-sm font-medium text-gray-700">Original Price (₹) <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 step="0.01"
                                 value={originalPrice}
                                 onChange={e => setOriginalPrice(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Discount (%)</label>
+                            <label className="block text-sm font-medium text-gray-700">Discount (%) <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
@@ -100,7 +101,7 @@ export default function ProductModal({ product, onSave, onClose }) {
                                 value={discountPercentage}
                                 onChange={e => setDiscountPercentage(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                             />
                         </div>
                     </div>
@@ -108,23 +109,23 @@ export default function ProductModal({ product, onSave, onClose }) {
                     {/* Stock Quantity & Category Dropdown */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Stock Quantity</label>
+                            <label className="block text-sm font-medium text-gray-700">Stock Quantity <span className="text-red-500">*</span></label>
                             <input
                                 type="number"
                                 min="0"
                                 value={stockQuantity}
                                 onChange={e => setStockQuantity(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Category</label>
+                            <label className="block text-sm font-medium text-gray-700">Category <span className="text-red-500">*</span></label>
                             <select
                                 value={categoryId}
                                 onChange={e => setCategoryId(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
                             >
                                 <option value="">Select a category</option>
                                 {categories.map(category => (

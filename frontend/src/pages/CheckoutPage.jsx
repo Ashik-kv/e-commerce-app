@@ -1,10 +1,10 @@
 // src/pages/CheckoutPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 const CheckoutPage = () => {
-  const { cart, addresses, createOrder, navigate, fetchAddresses } = useAppContext();
-  const [selectedAddressId, setSelectedAddressId] = useState('');
+  // MODIFICATION: Using new state and functions for address selection.
+  const { cart, addresses, createOrder, navigate, fetchAddresses, startAddressSelection, selectedAddressId, setSelectedAddressId } = useAppContext();
 
   useEffect(() => {
     fetchAddresses();
@@ -64,6 +64,7 @@ const CheckoutPage = () => {
             <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
             {addresses.length > 0 ? (
                 <select
+                    // MODIFICATION: The value and onChange are now linked to the context state.
                     value={selectedAddressId}
                     onChange={(e) => setSelectedAddressId(e.target.value)}
                     className="w-full p-2 border rounded bg-white text-black"
@@ -78,7 +79,8 @@ const CheckoutPage = () => {
             ) : (
                 <p>No addresses found. Please add an address.</p>
             )}
-            <button onClick={() => navigate('addresses')} className="text-blue-500 hover:underline mt-2">
+            {/* MODIFICATION: The "Manage Addresses" button now starts the selection flow. */}
+            <button onClick={startAddressSelection} className="text-blue-500 hover:underline mt-2">
               Manage Addresses
             </button>
           </div>

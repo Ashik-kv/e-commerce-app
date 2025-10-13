@@ -1,16 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+
 
 export default function Navbar() {
-    const { currentUser, navigate, logout, cart, searchTerm, searchProducts } = useAppContext();
-
+    const { currentUser, navigate, logout, cart, filters, updateFilters } = useAppContext();
+    const [searchTerm, setSearchTerm] = useState(filters.keyword || "");
     const navLinkStyle = "text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition";
+    const debouncedSearch = useDebouncedValue(searchTerm, 400);
+
+    // Update global filters only when debounced value changes
+    React.useEffect(() => {
+        updateFilters({ keyword: debouncedSearch });
+    }, [debouncedSearch]);
+
 
     return (
         <nav className="bg-white shadow-md">
             <div className="px-4 md:px-8">
                 <div className="flex justify-between items-center py-4">
-                    <div className="text-2xl font-bold text-blue-600 cursor-pointer" onClick={() => navigate('home')}>
+                    <div
+                        className="text-2xl font-bold text-blue-600 cursor-pointer"
+                        onClick={() => navigate("home")}
+                    >
                         SpringCart
                     </div>
 
@@ -19,7 +31,7 @@ export default function Navbar() {
                             type="text"
                             placeholder="Search for products..."
                             value={searchTerm}
-                            onChange={(e) => searchProducts(e.target.value)}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-full focus:outline-none focus:border-blue-500"
                         />
                     </div>

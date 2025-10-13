@@ -1,3 +1,4 @@
+// src/pages/SellerDashboard.jsx
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import ProductModal from '../components/ProductModal';
@@ -8,21 +9,25 @@ export default function SellerDashboard() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [stockUpdate, setStockUpdate] = useState({});
 
-    const sellerProducts = products.filter(p => p.seller.email === currentUser?.email);
+    const sellerProducts = products.filter(p => p.seller && p.seller.email === currentUser?.email);
 
     if (!currentUser || !currentUser.roles?.includes('ROLE_SELLER')) {
         return <div className="text-center"><p className="text-red-500">Access Denied.</p><button onClick={() => navigate('home')} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Go to Home</button></div>;
     }
 
+    // MODIFICATION: This function now updates the local state for the quantity to be added or removed.
     const handleStockChange = (productId, value) => {
-        setStockUpdate({ ...stockUpdate, [productId]: parseInt(value, 10) || 1 });
+        const quantity = Math.max(1, parseInt(value, 10) || 1); // Ensure quantity is at least 1
+        setStockUpdate({ ...stockUpdate, [productId]: quantity });
     };
 
+    // MODIFICATION: This function is called when the 'Add' button is clicked.
     const handleIncreaseStock = (productId) => {
         const quantity = stockUpdate[productId] || 1;
         increaseStock(productId, quantity);
     };
 
+    // MODIFICATION: This function is called when the 'Remove' button is clicked.
     const handleReduceStock = (productId) => {
         const quantity = stockUpdate[productId] || 1;
         reduceStock(productId, quantity);
@@ -72,17 +77,19 @@ export default function SellerDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-2">
+                                        {/* MODIFICATION: The input field is now controlled and has a white background. */}
                                         <input
                                             type="number"
                                             min="1"
-                                            defaultValue="1"
+                                            value={stockUpdate[product.id] || 1}
                                             onChange={(e) => handleStockChange(product.id, e.target.value)}
-                                            className="w-16 p-1 border rounded"
+                                            className="w-20 p-2 border rounded bg-white text-black"
                                         />
-                                        <button onClick={() => handleIncreaseStock(product.id)} className="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600">+</button>
-                                        <button onClick={() => handleReduceStock(product.id)} className="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600">-</button>
-                                        <button onClick={() => openEditModal(product)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</button>
-                                        <button onClick={() => deleteProduct(product.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+                                        {/* MODIFICATION: Buttons now have clearer labels and act as confirmation. */}
+                                        <button onClick={() => handleIncreaseStock(product.id)} className="bg-green-500 text-white px-4 py-2 text-xs rounded hover:bg-green-600">Add</button>
+                                        <button onClick={() => handleReduceStock(product.id)} className="bg-red-500 text-white px-4 py-2 text-xs rounded hover:bg-red-600">Remove</button>
+                                        <button onClick={() => openEditModal(product)} className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</button>
+                                        <button onClick={() => deleteProduct(product.id)} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
                                     </div>
                                 </div>
                             );

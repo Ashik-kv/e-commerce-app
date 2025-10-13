@@ -1,6 +1,7 @@
 package org.ecommercesample.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -49,7 +50,7 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="category_id",nullable = false)
     private Category category;
-    @JsonIgnore
+    @JsonIgnoreProperties({"products", "reviews", "addresses", "orders", "password"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="seller_id",nullable = false)
     private User seller;
@@ -66,6 +67,14 @@ public class Product {
         BigDecimal discountMultiplier = new BigDecimal(discountPercentage).divide(new BigDecimal(100));
         BigDecimal discountAmount = originalPrice.multiply(discountMultiplier);
         return originalPrice.subtract(discountAmount);
+    }
+
+    @Transient
+    public ProductImage getMainImage() {
+        if (images != null && !images.isEmpty()) {
+            return images.get(0);
+        }
+        return null;
     }
 
 }

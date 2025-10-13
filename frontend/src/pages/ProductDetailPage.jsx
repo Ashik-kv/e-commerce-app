@@ -1,24 +1,60 @@
 // src/pages/ProductDetailPage.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function ProductDetailPage({ productId }) {
     const { products, addToCart, navigate } = useAppContext();
     const product = products.find(p => p.id === productId);
+    // MODIFICATION: State to keep track of the currently displayed image.
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     if (!product) {
         return <div className="text-center"><p>Product not found.</p><button onClick={() => navigate('home')} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Go to Home</button></div>;
     }
 
-    const imageUrl = product.images && product.images.length > 0
-        ? `data:${product.images[0].imageType};base64,${product.images[0].imageFile}`
+    const hasImages = product.images && product.images.length > 0;
+
+    // MODIFICATION: Functions to navigate to the next and previous images.
+    const goToNextImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
+    };
+
+    const goToPreviousImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + product.images.length) % product.images.length);
+    };
+
+
+    const imageUrl = hasImages
+        ? `data:${product.images[currentImageIndex].imageType};base64,${product.images[currentImageIndex].imageFile}`
         : 'https://placehold.co/600x400/cccccc/ffffff?text=No+Image';
+
+    const isOutOfStock = product.stockQuantity <= 0;
 
     return (
         <div className="container mx-auto p-4 md:p-8">
             <div className="bg-white shadow-lg rounded-lg overflow-hidden md:flex">
-                <div className="md:w-1/2">
-                    <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                {/* MODIFICATION: Image container is now a carousel. */}
+                <div className="md:w-1/2 relative">
+                    <img src={imageUrl} alt={`${product.name} - image ${currentImageIndex + 1}`} className="w-full h-full object-cover" />
+                    {hasImages && product.images.length > 1 && (
+                        <>
+                            <button
+                                onClick={goToPreviousImage}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
+                            >
+                                &#10094;
+                            </button>
+                            <button
+                                onClick={goToNextImage}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
+                            >
+                                &#10095;
+                            </button>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                {currentImageIndex + 1} / {product.images.length}
+                            </div>
+                        </>
+                    )}
                 </div>
                 <div className="md:w-1/2 p-6">
                     <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
@@ -31,12 +67,19 @@ export default function ProductDetailPage({ productId }) {
                     {product.category && (
                         <p className="text-sm text-gray-500 mb-4">Category: {product.category.categoryName}</p>
                     )}
-                    <p className="text-sm text-gray-500 mb-4">Stock: {product.stockQuantity}</p>
+                    <p className={`text-sm font-semibold mb-4 ${isOutOfStock ? 'text-red-500' : 'text-gray-500'}`}>
+                        Stock: {isOutOfStock ? 'Out of Stock' : product.stockQuantity}
+                    </p>
                     <button
-                        onClick={() => addToCart(product.id)}
-                        className="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition"
+                        onClick={() => !isOutOfStock && addToCart(product.id)}
+                        disabled={isOutOfStock}
+                        className={`w-full px-6 py-3 rounded-lg font-semibold transition ${
+                            isOutOfStock
+                                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                                : 'bg-green-500 text-white hover:bg-green-600'
+                        }`}
                     >
-                        Add to Cart
+                        {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                     </button>
                 </div>
             </div>

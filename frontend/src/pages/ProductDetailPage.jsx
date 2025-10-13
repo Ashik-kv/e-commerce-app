@@ -5,7 +5,6 @@ import { useAppContext } from '../context/AppContext';
 export default function ProductDetailPage({ productId }) {
     const { products, addToCart, navigate } = useAppContext();
     const product = products.find(p => p.id === productId);
-    // MODIFICATION: State to keep track of the currently displayed image.
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     if (!product) {
@@ -14,7 +13,7 @@ export default function ProductDetailPage({ productId }) {
 
     const hasImages = product.images && product.images.length > 0;
 
-    // MODIFICATION: Functions to navigate to the next and previous images.
+    // Functions to navigate to the next and previous images.
     const goToNextImage = () => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
     };
@@ -23,8 +22,7 @@ export default function ProductDetailPage({ productId }) {
         setCurrentImageIndex((prevIndex) => (prevIndex - 1 + product.images.length) % product.images.length);
     };
 
-
-    const imageUrl = hasImages
+    const mainImageUrl = hasImages
         ? `data:${product.images[currentImageIndex].imageType};base64,${product.images[currentImageIndex].imageFile}`
         : 'https://placehold.co/600x400/cccccc/ffffff?text=No+Image';
 
@@ -33,27 +31,46 @@ export default function ProductDetailPage({ productId }) {
     return (
         <div className="container mx-auto p-4 md:p-8">
             <div className="bg-white shadow-lg rounded-lg overflow-hidden md:flex">
-                {/* MODIFICATION: Image container is now a carousel. */}
-                <div className="md:w-1/2 relative">
-                    <img src={imageUrl} alt={`${product.name} - image ${currentImageIndex + 1}`} className="w-full h-full object-cover" />
+                <div className="md:w-1/2 p-4">
+                    {/* Main Image Display with Navigation Arrows */}
+                    <div className="relative mb-4">
+                        <img
+                            src={mainImageUrl}
+                            alt={`${product.name} - image ${currentImageIndex + 1}`}
+                            className="w-full h-auto object-cover rounded-lg"
+                            style={{ aspectRatio: '1 / 1' }} // Enforces a square aspect ratio
+                        />
+                        {hasImages && product.images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={goToPreviousImage}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
+                                >
+                                    &#10094;
+                                </button>
+                                <button
+                                    onClick={goToNextImage}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
+                                >
+                                    &#10095;
+                                </button>
+                            </>
+                        )}
+                    </div>
+                    {/* Thumbnails */}
                     {hasImages && product.images.length > 1 && (
-                        <>
-                            <button
-                                onClick={goToPreviousImage}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
-                            >
-                                &#10094;
-                            </button>
-                            <button
-                                onClick={goToNextImage}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition"
-                            >
-                                &#10095;
-                            </button>
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                                {currentImageIndex + 1} / {product.images.length}
-                            </div>
-                        </>
+                        <div className="flex space-x-2 overflow-x-auto">
+                            {product.images.map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={`data:${image.imageType};base64,${image.imageFile}`}
+                                    alt={`${product.name} thumbnail ${index + 1}`}
+                                    className={`w-20 h-20 object-cover rounded-md cursor-pointer border-2 ${currentImageIndex === index ? 'border-blue-500' : 'border-transparent'}`}
+                                    style={{ aspectRatio: '1 / 1' }} // Enforces a square aspect ratio for thumbnails
+                                    onClick={() => setCurrentImageIndex(index)}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
                 <div className="md:w-1/2 p-6">

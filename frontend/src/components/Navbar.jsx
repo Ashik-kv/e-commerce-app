@@ -37,7 +37,6 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center space-x-2 md:space-x-4">
-                        <button onClick={() => navigate('home')} className={navLinkStyle}>Home</button>
                         <button onClick={() => navigate('cart')} className={navLinkStyle}>
                             Cart {cart && cart.cartItems.length > 0 && `(${cart.cartItems.length})`}
                         </button>

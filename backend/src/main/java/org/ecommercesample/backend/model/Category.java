@@ -1,6 +1,7 @@
 package org.ecommercesample.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "categories")
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

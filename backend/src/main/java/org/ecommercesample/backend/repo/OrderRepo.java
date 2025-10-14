@@ -4,6 +4,7 @@ import org.ecommercesample.backend.model.Order;
 import org.ecommercesample.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,4 +18,7 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
     Optional<Order> findByIdAndUserId(Long orderId, Long userId);
 
     Long user(User user);
+
+    @Query("SELECT DISTINCT o from Order o JOIN o.orderItems oi WHERE oi.product.seller.id=:sellerId")
+    List<Order> findOrdersBySellerId(@Param("sellerId") Long sellerId);
 }

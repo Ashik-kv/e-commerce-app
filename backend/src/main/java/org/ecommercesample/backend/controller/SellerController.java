@@ -1,13 +1,12 @@
 package org.ecommercesample.backend.controller;
 
+import org.ecommercesample.backend.dto.OrderResponse;
 import org.ecommercesample.backend.dto.ProductRequest;
 import org.ecommercesample.backend.exceptions.ResourceNotFoundException;
-import org.ecommercesample.backend.model.Category;
-import org.ecommercesample.backend.model.Product;
-import org.ecommercesample.backend.model.ProductImage;
-import org.ecommercesample.backend.model.User;
+import org.ecommercesample.backend.model.*;
 import org.ecommercesample.backend.repo.CategoryRepo;
 import org.ecommercesample.backend.repo.UserRepo;
+import org.ecommercesample.backend.service.OrderService;
 import org.ecommercesample.backend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/seller/products")
+@RequestMapping("/api/seller")
 @PreAuthorize("hasRole('SELLER')")
 public class SellerController {
 
@@ -39,8 +38,11 @@ public class SellerController {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private OrderService orderService;
 
-    @PostMapping
+
+    @PostMapping("/products")
     public ResponseEntity<Product> addProduct(@RequestPart("product")ProductRequest productRequest,
                                               @RequestPart("images")List<MultipartFile> images,
                                               @AuthenticationPrincipal UserDetails userDetails) throws IOException {
@@ -91,7 +93,7 @@ public class SellerController {
         return ResponseEntity.created(location).body(savedProduct);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/products/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id,@RequestBody Product productDetails){
         try{
             Product updatedProduct=productService.updateProduct(id, productDetails);
@@ -102,7 +104,7 @@ public class SellerController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/products/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id){
         try{
             productService.deleteProduct(id);
@@ -113,7 +115,7 @@ public class SellerController {
         }
 
     }
-    @PutMapping("/{productId}/stock/increase")
+    @PutMapping("/products/{productId}/stock/increase")
     public ResponseEntity<Map<String, Object>> increaseStock(
             @PathVariable Long productId,
             @RequestParam int quantity) {
@@ -142,7 +144,7 @@ public class SellerController {
     }
 
 
-    @PutMapping("/{productId}/stock/reduce")
+    @PutMapping("/products/{productId}/stock/reduce")
     public ResponseEntity<Map<String, Object>> reduceStock(
             @PathVariable Long productId,
             @RequestParam int quantity) {
@@ -174,7 +176,7 @@ public class SellerController {
     }
 
 
-    @PutMapping("/{productId}/stock")
+    @PutMapping("/products/{productId}/stock")
     public ResponseEntity<Map<String, Object>> setStockQuantity(
             @PathVariable Long productId,
             @RequestParam int quantity) {
@@ -202,6 +204,25 @@ public class SellerController {
             ));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getSellerOrders(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long sellerId = userPrincipal.getUser().getId();
+        return ResponseEntity.ok(orderService.getOrdersForSeller(sellerId));
+    }
+
+    @PutMapping("/orders/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam OrderStatus status,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            orderService.updateOrderStatus(orderId, status, userPrincipal.getUser().getId());
+            return ResponseEntity.ok(Map.of("message", "Order status updated successfully."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

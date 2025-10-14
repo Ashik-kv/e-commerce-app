@@ -39,9 +39,11 @@ export default function ManageOrdersPage() {
                                 <select
                                     value={order.orderStatus}
                                     onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
-                                    className="p-2 border rounded bg-white text-black"
+                                    disabled={order.orderStatus === 'CANCELLED'}
+                                    className="p-2 border rounded bg-white text-black disabled:bg-gray-200 disabled:cursor-not-allowed"
                                 >
                                     <option value="PENDING">Pending</option>
+                                    <option value="PROCESSING">Processing</option>
                                     <option value="SHIPPED">Shipped</option>
                                     <option value="DELIVERED">Delivered</option>
                                     <option value="CANCELLED">Cancelled</option>

@@ -16,4 +16,5 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private List<OrderItemResponse> orderItems;
     private Address shippingAddress;
+    private UserDto user;
 }

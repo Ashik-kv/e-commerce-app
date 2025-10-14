@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
 
-export default function Navbar({ onMenuClick, isSidebarOpen }) {
+export default function Navbar() {
     const { currentUser, navigate, logout, cart, filters, updateFilters, becomeSeller } = useAppContext();
     const [searchTerm, setSearchTerm] = useState(filters.keyword || "");
     const debouncedSearch = useDebouncedValue(searchTerm, 400);
@@ -39,19 +39,8 @@ export default function Navbar({ onMenuClick, isSidebarOpen }) {
         <nav className="bg-white shadow-md">
             <div className="px-4 md:px-8">
                 <div className="flex justify-between items-center py-2">
-                    {/* Left side: Brand and Seller Menu Toggle */}
+                    {/* Left side: Brand */}
                     <div className="flex items-center">
-                        {currentUser?.roles?.includes('ROLE_SELLER') && (
-                            <button onClick={onMenuClick} className="p-2 mr-2 text-gray-600 hover:text-blue-600 bg-transparent">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    {isSidebarOpen ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                    )}
-                                </svg>
-                            </button>
-                        )}
                         <div
                             className="text-2xl font-bold text-blue-600 cursor-pointer"
                             onClick={() => navigate("home")}
@@ -82,11 +71,13 @@ export default function Navbar({ onMenuClick, isSidebarOpen }) {
                         )}
 
 
-                        {/* Cart Button */}
-                        <button onClick={() => navigate('cart')} className="flex items-center text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition">
-                            <svg className="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            Cart {cart && cart.cartItems.length > 0 && `(${cart.cartItems.length})`}
-                        </button>
+                        {/* Cart Button - Not for sellers */}
+                        {!currentUser?.roles?.includes('ROLE_SELLER') && (
+                            <button onClick={() => navigate('cart')} className="flex items-center text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition">
+                                <svg className="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                Cart {cart && cart.cartItems.length > 0 && `(${cart.cartItems.length})`}
+                            </button>
+                        )}
 
 
                         {/* Login/Profile Dropdown */}
@@ -103,9 +94,16 @@ export default function Navbar({ onMenuClick, isSidebarOpen }) {
                                         <button onClick={() => { navigate('profile'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             My Profile
                                         </button>
-                                        <button onClick={() => { navigate('order-history'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            Orders
-                                        </button>
+                                        {!currentUser?.roles?.includes('ROLE_SELLER') && (
+                                            <button onClick={() => { navigate('order-history'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Orders
+                                            </button>
+                                        )}
+                                        {currentUser?.roles?.includes('ROLE_SELLER') && (
+                                            <button onClick={() => { navigate('manage-orders'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Manage Orders
+                                            </button>
+                                        )}
                                         <div className="border-t my-1"></div>
                                         <button onClick={logout} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             Logout

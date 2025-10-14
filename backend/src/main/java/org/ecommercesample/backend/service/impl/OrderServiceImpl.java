@@ -3,6 +3,7 @@ package org.ecommercesample.backend.service.impl;
 import jakarta.transaction.Transactional;
 import org.ecommercesample.backend.dto.OrderItemResponse;
 import org.ecommercesample.backend.dto.OrderResponse;
+import org.ecommercesample.backend.dto.UserDto;
 import org.ecommercesample.backend.exceptions.*;
 import org.ecommercesample.backend.model.*;
 import org.ecommercesample.backend.repo.*;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.ecommercesample.backend.model.OrderStatus.PENDING;
 
@@ -109,6 +111,12 @@ public class OrderServiceImpl implements OrderService {
         orderResponse.setOrderDate(order.getOrderDate());
         orderResponse.setTotalAmount(order.getTotalAmount());
         orderResponse.setShippingAddress(order.getShippingAddress());
+
+        UserDto userDto = new UserDto();
+        userDto.setFirstName(order.getUser().getFirstName());
+        userDto.setEmail(order.getUser().getEmail());
+        orderResponse.setUser(userDto);
+
         List<OrderItemResponse>  itemResponses=new ArrayList<>();
         for(OrderItem orderItem:order.getOrderItems()){
             OrderItemResponse orderItemResponse=new OrderItemResponse();
@@ -149,6 +157,35 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELLED);
+        orderRepo.save(order);
+    }
+
+    @Override
+    public List<OrderResponse> getOrdersForSeller(Long sellerId) {
+        List<Order> orders = orderRepo.findOrdersBySellerId(sellerId);
+        return orders.stream()
+                .map(this::mapOrderToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatus(Long orderId, OrderStatus status, Long sellerId) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot change the status of a cancelled order.");
+        }
+
+        boolean isSellerProductInOrder = order.getOrderItems().stream()
+                .anyMatch(item -> item.getProduct().getSeller().getId().equals(sellerId));
+
+        if (!isSellerProductInOrder) {
+            throw new ForbiddenException("You are not authorized to update this order.");
+        }
+
+        order.setStatus(status);
         orderRepo.save(order);
     }
 }

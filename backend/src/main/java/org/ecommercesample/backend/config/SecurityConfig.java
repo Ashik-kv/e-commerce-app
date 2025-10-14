@@ -59,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/seller/**").hasAuthority("ROLE_SELLER")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/cart/**","/api/orders/**","/api/addresses/**","/api/reviews","/api/profile/**", "/api/seller-requests/**")
-                        .authenticated()
+                            .authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -17,6 +17,8 @@ export const AppProvider = ({ children }) => {
     const [addresses, setAddresses] = useState([]);
     const [orders, setOrders] = useState([]);
     const [allOrders, setAllOrders] = useState([]); // New state for all orders (for seller/admin)
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(null); // New state for average rating
     // MODIFICATION: Added state to manage the address selection flow for checkout.
     const [isAddressSelectionMode, setIsAddressSelectionMode] = useState(false);
     const [selectedAddressId, setSelectedAddressId] = useState('');
@@ -139,7 +141,7 @@ export const AppProvider = ({ children }) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/addresses`, { headers: getAuthHeaders() });
             if (response.ok) setAddresses(await response.json());
-        } catch (error)            {
+        } catch (error) {
             console.error("Failed to fetch addresses:", error);
         }
     };
@@ -179,7 +181,7 @@ export const AppProvider = ({ children }) => {
             if (token) {
                 try {
                     const decoded = jwtDecode(token);
-                    setCurrentUser({ email: decoded.sub, roles: decoded.roles || [] });
+                    setCurrentUser({ email: decoded.sub, roles: decoded.roles || [], id: decoded.id });
                     await fetchCart();
                     await fetchOrders();
                     await fetchAddresses();
@@ -205,7 +207,7 @@ export const AppProvider = ({ children }) => {
             const { token } = await response.json();
             localStorage.setItem('authToken', token);
             const decoded = jwtDecode(token);
-            setCurrentUser({ email: decoded.sub, roles: decoded.roles || [] });
+            setCurrentUser({ email: decoded.sub, roles: decoded.roles || [], id: decoded.id });
 
             await fetchCart();
             await fetchOrders();
@@ -426,7 +428,13 @@ export const AppProvider = ({ children }) => {
                 method: 'PUT',
                 headers: getAuthHeaders()
             });
-            if (response.ok) setCart(await response.json());
+            // *** CHANGE IS HERE ***
+            // Added a check to ensure the response is ok before trying to parse it.
+            if (response.ok) {
+                setCart(await response.json());
+            } else {
+                console.error("Failed to update cart quantity, server responded with:", await response.text());
+            }
         } catch (error) {
             console.error("Failed to update cart quantity:", error);
         }
@@ -505,6 +513,83 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const fetchReviews = async (productId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/product/${productId}`, { headers: getAuthHeaders() });
+            if (response.ok) {
+                setReviews(await response.json());
+            } else {
+                setReviews([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch reviews:", error);
+            setReviews([]);
+        }
+    };
+
+    const fetchAverageRating = async (productId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/product/${productId}/average-rating`);
+            if (response.ok) {
+                const data = await response.json();
+                setAverageRating(data);
+            } else {
+                setAverageRating(null);
+            }
+        } catch (error) {
+            console.error("Failed to fetch average rating:", error);
+            setAverageRating(null);
+        }
+    };
+
+    const addReview = async (productId, reviewData) => {
+        if (!currentUser) {
+            navigate('login');
+            return { success: false, error: "Please log in to submit a review." };
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/product/${productId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(reviewData)
+            });
+            const responseData = await response.json();
+            if (response.ok) {
+                fetchReviews(productId); // refresh reviews
+                fetchAverageRating(productId); // refresh average rating
+                return { success: true, review: responseData };
+            }
+            return { success: false, error: responseData.message || "Failed to submit review." };
+        } catch (error) {
+            console.error("Failed to add review:", error);
+            return { success: false, error: "An unexpected error occurred." };
+        }
+    };
+
+    const updateReview = async (reviewId, reviewData) => {
+        if (!currentUser) {
+            navigate('login');
+            return { success: false, error: "Please log in to update a review." };
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${reviewId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(reviewData)
+            });
+            const responseData = await response.json();
+            if (response.ok) {
+                fetchReviews(selectedProductId); // refresh reviews for the current product
+                fetchAverageRating(selectedProductId); // refresh average rating
+                return { success: true, review: responseData };
+            }
+            return { success: false, error: responseData.message || "Failed to update review." };
+        } catch (error) {
+            console.error("Failed to update review:", error);
+            return { success: false, error: "An unexpected error occurred." };
+        }
+    };
+
     // ✨ MODIFIED navigate FUNCTION TO UPDATE BROWSER HISTORY
     const navigate = (page, id = null) => {
         const state = { page, id };
@@ -536,15 +621,103 @@ export const AppProvider = ({ children }) => {
         navigate('checkout');
     };
 
+    const getCurrentUser = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile`, { headers: getAuthHeaders() });
+            return response.ok ? await response.json() : null;
+        } catch (error) {
+            console.error("Failed to fetch current user:", error);
+            return null;
+        }
+    };
+
+    const updateUser = async (userData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(userData)
+            });
+            return { success: response.ok };
+        } catch (error) {
+            console.error("Failed to update user:", error);
+            return { success: false, error: "An unexpected error occurred." };
+        }
+    };
+
+    const updatePassword = async (passwordData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(passwordData)
+            });
+            if (response.ok) {
+                return { success: true };
+            }
+            const errorText = await response.text();
+            return { success: false, error: errorText };
+        } catch (error) {
+            console.error("Failed to update password:", error);
+            return { success: false, error: "An unexpected error occurred." };
+        }
+    };
+
+    const becomeSeller = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/seller-requests`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            const responseText = await response.text();
+            alert(responseText);
+        } catch (error) {
+            console.error("Failed to become a seller:", error);
+            alert("An unexpected error occurred while trying to become a seller.");
+        }
+    };
+
+    const getSellerRequests = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/seller-requests`, { headers: getAuthHeaders() });
+            return response.ok ? await response.json() : [];
+        } catch (error) {
+            console.error("Failed to fetch seller requests:", error);
+            return [];
+        }
+    };
+
+    const approveSellerRequest = async (requestId) => {
+        try {
+            await fetch(`${API_BASE_URL}/api/admin/seller-requests/${requestId}/approve`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Failed to approve seller request:", error);
+        }
+    };
+
+    const rejectSellerRequest = async (requestId) => {
+        try {
+            await fetch(`${API_BASE_URL}/api/admin/seller-requests/${requestId}/reject`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Failed to reject seller request:", error);
+        }
+    };
 
     const value = {
-        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters, allOrders,
-        // MODIFICATION: Exposing new state and functions to the context.
+        users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters, allOrders, reviews, averageRating,
         isAddressSelectionMode, selectedAddressId, setSelectedAddressId,
         login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
         fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress,
         fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock,
-        startAddressSelection, selectAddressAndReturn, fetchAllOrders, updateOrderStatus
+        startAddressSelection, selectAddressAndReturn, fetchAllOrders, updateOrderStatus,
+        fetchReviews, fetchAverageRating, addReview, updateReview,
+        getCurrentUser, updateUser, updatePassword, becomeSeller, getSellerRequests, approveSellerRequest, rejectSellerRequest
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

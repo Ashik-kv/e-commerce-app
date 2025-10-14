@@ -24,7 +24,9 @@ export default function HomePage() {
             </div>
 
             {isLoading ? (
-                <p>Loading...</p>
+                <div className="text-center p-16">
+                    <p className="text-lg text-gray-500">Loading products...</p>
+                </div>
             ) : products && products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                     {products.map(product => (
@@ -32,7 +34,9 @@ export default function HomePage() {
                     ))}
                 </div>
             ) : (
-                <p>No products found.</p>
+                <div className="text-center bg-gray-50 p-16 rounded-lg">
+                    <p className="text-lg text-gray-500">No products found.</p>
+                </div>
             )}
         </div>
     );

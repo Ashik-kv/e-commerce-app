@@ -55,10 +55,11 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/register", "/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**","/api/reviews/product/**").permitAll()
                         .requestMatchers("/api/seller/**").hasAuthority("ROLE_SELLER")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/cart/**","/api/orders/**","/api/addresses/**").authenticated()
+                        .requestMatchers("/api/cart/**","/api/orders/**","/api/addresses/**","/api/reviews","/api/profile/**", "/api/seller-requests/**")
+                        .authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

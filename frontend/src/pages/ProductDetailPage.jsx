@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import ProductModal from '../components/ProductModal';
+import ReviewSection from '../components/ReviewSection';
 
 export default function ProductDetailPage({ productId }) {
     const { products, addToCart, navigate, currentUser, updateProduct } = useAppContext();
@@ -118,6 +119,7 @@ export default function ProductDetailPage({ productId }) {
                     )}
                 </div>
             </div>
+            <ReviewSection productId={productId} />
         </div>
     );
 }

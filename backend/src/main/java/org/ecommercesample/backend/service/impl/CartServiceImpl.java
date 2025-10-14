@@ -87,7 +87,8 @@ public class CartServiceImpl implements CartService {
         }
         cartItem.setQuantity(quantity);
         cartItemRepo.save(cartItem);
-        return mapCartToResponse(cart);
+        Cart updatedCart = cartRepo.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+        return mapCartToResponse(updatedCart);
     }
 
     @Override

@@ -1,12 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function AdminDashboard() {
-    const { users, products, currentUser, navigate, fetchUsers, promoteUserToSeller } = useAppContext();
+    const { users, products, currentUser, navigate, fetchUsers, promoteUserToSeller, getSellerRequests, approveSellerRequest, rejectSellerRequest } = useAppContext();
+    const [sellerRequests, setSellerRequests] = useState([]);
 
     useEffect(() => {
         if (currentUser?.roles?.includes('ROLE_ADMIN')) {
             fetchUsers();
+            const fetchRequests = async () => {
+                const requests = await getSellerRequests();
+                setSellerRequests(requests);
+            };
+            fetchRequests();
         }
     }, [currentUser]);
 
@@ -21,9 +27,50 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleApprove = async (requestId) => {
+        await approveSellerRequest(requestId);
+        const requests = await getSellerRequests();
+        setSellerRequests(requests);
+    };
+
+    const handleReject = async (requestId) => {
+        await rejectSellerRequest(requestId);
+        const requests = await getSellerRequests();
+        setSellerRequests(requests);
+    };
+
     return (
         <div className="space-y-12">
             <h1 className="text-4xl font-extrabold text-gray-800">Admin Dashboard</h1>
+
+            <div>
+                <h2 className="text-2xl font-bold text-gray-700 mb-4">Seller Requests</h2>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                            <tr className="bg-gray-100">
+                                <th className="p-3">User Email</th>
+                                <th className="p-3">Request Date</th>
+                                <th className="p-3">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {sellerRequests.map(request => (
+                                <tr key={request.id} className="border-b">
+                                    <td className="p-3">{request.user.email}</td>
+                                    <td className="p-3">{new Date(request.createdAt).toLocaleDateString()}</td>
+                                    <td className="p-3">
+                                        <button onClick={() => handleApprove(request.id)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs font-semibold mr-2">Approve</button>
+                                        <button onClick={() => handleReject(request.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-xs font-semibold">Reject</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <div>
                 <h2 className="text-2xl font-bold text-gray-700 mb-4">User Management</h2>

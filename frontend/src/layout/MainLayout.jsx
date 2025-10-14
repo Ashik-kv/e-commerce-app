@@ -16,6 +16,7 @@ import AddressPage from '../pages/AddressPage';
 import OrderHistoryPage from '../pages/OrderHistoryPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import ManageOrdersPage from '../pages/ManageOrdersPage';
+import ProfilePage from '../pages/ProfilePage';
 import './mainlayout.css'
 
 function PageContent() {
@@ -34,6 +35,7 @@ function PageContent() {
         case 'order-history': return <OrderHistoryPage />;
         case 'order-detail': return <OrderDetailPage orderId={selectedProductId} />;
         case 'manage-orders': return <ManageOrdersPage />;
+        case 'profile': return <ProfilePage />;
         default: return <HomePage />;
     }
 }

@@ -12,6 +12,8 @@ export default function ReviewSection({ productId }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editRating, setEditRating] = useState(0);
     const [editComment, setEditComment] = useState('');
+    const [hoverRating, setHoverRating] = useState(0);
+    const [editHoverRating, setEditHoverRating] = useState(0);
 
     useEffect(() => {
         if (productId) {
@@ -102,19 +104,29 @@ export default function ReviewSection({ productId }) {
                     <h3 className="text-xl font-semibold mb-4">Write a review</h3>
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Rating</label>
-                        <select
-                            value={rating}
-                            onChange={(e) => setRating(e.target.value)}
-                            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
-                            required
-                        >
-                            <option value="">Select a rating</option>
-                            <option value="1">1 - Poor</option>
-                            <option value="2">2 - Fair</option>
-                            <option value="3">3 - Good</option>
-                            <option value="4">4 - Very Good</option>
-                            <option value="5">5 - Excellent</option>
-                        </select>
+                        <div className="flex">
+                            {[...Array(5)].map((_, index) => {
+                                const ratingValue = index + 1;
+                                return (
+                                    <label key={ratingValue} className="cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="rating"
+                                            value={ratingValue}
+                                            onClick={() => setRating(ratingValue)}
+                                            className="hidden"
+                                        />
+                                        <span
+                                            className={`text-2xl ${ratingValue <= (hoverRating || rating) ? 'text-yellow-500' : 'text-gray-300'}`}
+                                            onMouseEnter={() => setHoverRating(ratingValue)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                        >
+                                            ★
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Comment</label>
@@ -151,18 +163,29 @@ export default function ReviewSection({ productId }) {
                         <form onSubmit={handleEditSubmit}>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700">Rating</label>
-                                <select
-                                    value={editRating}
-                                    onChange={(e) => setEditRating(e.target.value)}
-                                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition bg-white"
-                                    required
-                                >
-                                    <option value="1">1 - Poor</option>
-                                    <option value="2">2 - Fair</option>
-                                    <option value="3">3 - Good</option>
-                                    <option value="4">4 - Very Good</option>
-                                    <option value="5">5 - Excellent</option>
-                                </select>
+                                <div className="flex">
+                                    {[...Array(5)].map((_, index) => {
+                                        const ratingValue = index + 1;
+                                        return (
+                                            <label key={ratingValue} className="cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="editRating"
+                                                    value={ratingValue}
+                                                    onClick={() => setEditRating(ratingValue)}
+                                                    className="hidden"
+                                                />
+                                                <span
+                                                    className={`text-2xl ${ratingValue <= (editHoverRating || editRating) ? 'text-yellow-500' : 'text-gray-300'}`}
+                                                    onMouseEnter={() => setEditHoverRating(ratingValue)}
+                                                    onMouseLeave={() => setEditHoverRating(0)}
+                                                >
+                                                    ★
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700">Comment</label>

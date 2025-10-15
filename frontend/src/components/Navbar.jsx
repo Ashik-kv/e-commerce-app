@@ -94,6 +94,9 @@ export default function Navbar() {
                                         <button onClick={() => { navigate('profile'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             My Profile
                                         </button>
+                                        <button onClick={() => { navigate('addresses'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Saved Addresses
+                                        </button>
                                         {!currentUser?.roles?.includes('ROLE_SELLER') && (
                                             <button onClick={() => { navigate('order-history'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Orders

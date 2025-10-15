@@ -158,7 +158,11 @@ export const AppProvider = ({ children }) => {
     // New function to fetch all orders for seller/admin
     const fetchAllOrders = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/seller/orders`, { headers: getAuthHeaders() });
+            let url = `${API_BASE_URL}/api/seller/orders`;
+            if (currentUser?.roles?.includes('ROLE_ADMIN')) {
+                url = `${API_BASE_URL}/api/admin/orders`;
+            }
+            const response = await fetch(url, { headers: getAuthHeaders() });
             if (!response.ok) {
                 // Throw an error to be caught by the calling function
                 throw new Error(`Failed to fetch all orders. Status: ${response.status}`);
@@ -390,6 +394,46 @@ export const AppProvider = ({ children }) => {
             return { success: false, error: errorData.message };
         } catch (error) {
             console.error("Failed to promote user:", error);
+            return { success: false, error: error.message };
+        }
+    };
+
+    const demoteSeller = async (userId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/demote`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+            });
+
+            if (response.ok) {
+                await fetchUsers(); // Re-fetch users to update the list
+                return { success: true };
+            }
+
+            const errorData = await response.json().catch(() => ({ message: "An unknown error occurred." }));
+            return { success: false, error: errorData.message };
+        } catch (error) {
+            console.error("Failed to demote seller:", error);
+            return { success: false, error: error.message };
+        }
+    };
+
+    const deleteUser = async (userId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+            });
+
+            if (response.ok) {
+                await fetchUsers(); // Re-fetch users to update the list
+                return { success: true };
+            }
+
+            const errorData = await response.json().catch(() => ({ message: "An unknown error occurred." }));
+            return { success: false, error: errorData.message };
+        } catch (error) {
+            console.error("Failed to delete user:", error);
             return { success: false, error: error.message };
         }
     };
@@ -715,12 +759,14 @@ export const AppProvider = ({ children }) => {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
+
             if (response.ok) {
                 await fetchAddresses(); // Refresh addresses after deletion
                 return { success: true };
             }
+
             const errorData = await response.json();
-            return { success: false, error: errorData.message || "Failed to delete address." };
+            return { success: false, error: errorData.error || "Failed to delete address." };
         } catch (error) {
             console.error("Failed to delete address:", error);
             return { success: false, error: "An unexpected error occurred." };
@@ -731,7 +777,7 @@ export const AppProvider = ({ children }) => {
     const value = {
         users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters, allOrders, reviews, averageRating,
         isAddressSelectionMode, selectedAddressId, setSelectedAddressId,
-        login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
+        login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller, demoteSeller, deleteUser,
         fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress, deleteAddress,
         fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock,
         startAddressSelection, selectAddressAndReturn, fetchAllOrders, updateOrderStatus,

@@ -21,4 +21,7 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o JOIN o.orderItems oi WHERE oi.product.seller.id = :sellerId GROUP BY o.id ORDER BY CASE WHEN o.status = 'CANCELLED' OR o.status = 'DELIVERED' THEN 1 ELSE 0 END ASC, o.orderDate DESC")
     List<Order> findOrdersBySellerId(@Param("sellerId") Long sellerId);
+
+    @Query("SELECT o FROM Order o ORDER BY CASE WHEN o.status = 'CANCELLED' OR o.status = 'DELIVERED' THEN 1 ELSE 0 END ASC, o.orderDate DESC")
+    List<Order> findAllOrders();
 }

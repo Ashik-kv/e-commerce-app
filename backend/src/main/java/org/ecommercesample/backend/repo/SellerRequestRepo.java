@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface SellerRequestRepo extends JpaRepository<SellerRequest,Long> {
     Optional<SellerRequest> findByUserIdAndStatus(Long userId, RequestStatus status);
     List<SellerRequest> findByStatus(RequestStatus status);
+    void deleteAllByUserId(Long userId);
 }

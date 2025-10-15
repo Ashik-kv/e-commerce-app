@@ -33,7 +33,7 @@ public class Order {
     @Column(nullable = false, updatable = false)
     private LocalDateTime orderDate;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "shipping_address_id", nullable = false)
     private Address shippingAddress;
 

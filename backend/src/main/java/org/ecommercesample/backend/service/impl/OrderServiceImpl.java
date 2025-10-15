@@ -98,6 +98,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepo.findAllOrders();
+        return orders.stream()
+                .map(this::mapOrderToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public OrderResponse getOrderById(Long orderId, Long userId) {
         Order order=orderRepo.findByIdAndUserId(orderId,userId)
                 .orElseThrow(() -> new OrderNotFoundException("Order Not found with ID:"+orderId));

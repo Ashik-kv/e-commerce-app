@@ -103,7 +103,7 @@ export default function Navbar() {
                                         )}
 
                                         {/* Orders - Not for sellers */}
-                                        {!currentUser?.roles?.includes('ROLE_SELLER') && (
+                                        {!currentUser?.roles?.includes('ROLE_SELLER') && !currentUser?.roles?.includes('ROLE_ADMIN') &&(
                                             <button onClick={() => { navigate('order-history'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Orders
                                             </button>
@@ -115,6 +115,19 @@ export default function Navbar() {
                                                 Manage Orders
                                             </button>
                                         )}
+
+                                        {/* Admin Dashboard Links */}
+                                        {currentUser?.roles?.includes('ROLE_ADMIN') && (
+                                            <>
+                                                <button onClick={() => { navigate('admin/seller-requests'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Seller Requests
+                                                </button>
+                                                <button onClick={() => { navigate('admin/user-management'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    User Management
+                                                </button>
+                                            </>
+                                        )}
+
                                         <div className="border-t my-1"></div>
                                         <button onClick={logout} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             Logout

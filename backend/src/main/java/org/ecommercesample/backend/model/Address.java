@@ -56,4 +56,5 @@ public class Address {
     @JsonIgnore
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
+    private boolean active = true;
 }

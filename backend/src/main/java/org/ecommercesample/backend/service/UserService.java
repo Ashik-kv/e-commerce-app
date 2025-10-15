@@ -9,11 +9,13 @@ import org.ecommercesample.backend.model.ERole;
 import org.ecommercesample.backend.model.RequestStatus;
 import org.ecommercesample.backend.model.SellerRequest;
 import org.ecommercesample.backend.model.User;
+import org.ecommercesample.backend.repo.CartRepo;
 import org.ecommercesample.backend.repo.SellerRequestRepo;
 import org.ecommercesample.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private CartRepo cartRepo;
 
     @Autowired
     private SellerRequestRepo sellerRequestRepo;
@@ -91,5 +96,27 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Seller request not found."));
         request.setStatus(RequestStatus.REJECTED);
         sellerRequestRepo.save(request);
+    }
+
+    public void demoteSeller(Long userId) {
+        User user = getUserById(userId);
+        if (user.getRole() != ERole.ROLE_SELLER) {
+            throw new IllegalStateException("User is not a seller.");
+        }
+        user.setRole(ERole.ROLE_USER);
+        userRepo.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        if (!userRepo.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+
+        cartRepo.findByUserId(userId).ifPresent(cart -> cartRepo.delete(cart));
+
+        sellerRequestRepo.deleteAllByUserId(userId);
+
+        userRepo.deleteById(userId);
     }
 }

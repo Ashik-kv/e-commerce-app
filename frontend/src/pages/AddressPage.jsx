@@ -21,7 +21,10 @@ export default function AddressPage() {
 
     const handleDeleteAddress = async (addressId) => {
         if (window.confirm("Are you sure you want to delete this address?")) {
-            await deleteAddress(addressId);
+            const result = await deleteAddress(addressId);
+            if (!result.success) {
+                alert(result.error);
+            }
         }
     };
 

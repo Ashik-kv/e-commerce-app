@@ -3,9 +3,12 @@ package org.ecommercesample.backend.service;
 import org.ecommercesample.backend.exceptions.InsufficientStockException;
 import org.ecommercesample.backend.exceptions.ResourceNotFoundException;
 import org.ecommercesample.backend.model.Product;
+import org.ecommercesample.backend.repo.OrderItemRepo;
 import org.ecommercesample.backend.repo.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 
@@ -15,6 +18,9 @@ public class ProductService {
 
     @Autowired
     private ProductRepo productRepo;
+
+    @Autowired
+    private OrderItemRepo orderItemRepo;
 
     @Autowired
     private CategoryService categoryService;
@@ -63,13 +69,6 @@ public class ProductService {
             existingProduct.setStockQuantity(productDetails.getStockQuantity());
         }
         return productRepo.save(existingProduct);
-    }
-
-    public void deleteProduct(Long productId){
-        if(!productRepo.existsById(productId)){
-            throw new ResourceNotFoundException("Product not found with id: " + productId);
-        }
-        productRepo.deleteById(productId);
     }
 
 
@@ -121,6 +120,20 @@ public class ProductService {
 
         productRepo.save(product);
         System.out.println("Stock increased for " + product.getName() + ": " + newStock + " available");
+    }
+
+    public void deleteProduct(Long productId){
+        if(!productRepo.existsById(productId)){
+            throw new ResourceNotFoundException("Product not found with id: " + productId);
+        }
+
+        // 👇 Add this check before attempting deletion
+        if (orderItemRepo.existsByProductId(productId)) {
+            // Throw an exception with a clear, user-friendly message
+            throw new DataIntegrityViolationException("Cannot delete this product because it is part of existing customer orders. Consider marking it as 'unavailable' instead.");
+        }
+
+        productRepo.deleteById(productId);
     }
 
 }

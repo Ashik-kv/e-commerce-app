@@ -1,5 +1,6 @@
 package org.ecommercesample.backend.service.impl;
 
+import org.ecommercesample.backend.exceptions.AddressInUseException;
 import org.ecommercesample.backend.exceptions.ResourceNotFoundException;
 import org.ecommercesample.backend.model.Address;
 import org.ecommercesample.backend.model.User;
@@ -33,15 +34,26 @@ public class AddressServiceImpl implements AddressService {
         if(!userRepo.existsById(userId)){
             throw new ResourceNotFoundException("User not found with id:"+userId);
         }
-        return addressRepo.findByUserId(userId);
+        return addressRepo.findByUserIdAndActiveTrue(userId);
     }
 
     @Transactional
     @Override
     public void deleteAddress(Long addressId, Long userId) {
-        if (!addressRepo.existsById(addressId)) {
-            throw new ResourceNotFoundException("Address not found with id: " + addressId);
+        Address address = addressRepo.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id: " + addressId));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new SecurityException("You are not authorized to delete this address.");
         }
-        addressRepo.deleteByIdAndUserId(addressId, userId);
+
+        if (!address.getOrders().isEmpty()) {
+            address.setActive(false); // Add this line
+            addressRepo.save(address); // Add this line
+        } else {
+            addressRepo.delete(address); // Keep this for addresses with no orders
+        }
+
+        addressRepo.delete(address);
     }
 }

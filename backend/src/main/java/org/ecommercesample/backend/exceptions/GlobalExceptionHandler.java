@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        System.out.println("❌ Validation Error: " + errors);
+        System.out.println("Validation Error: " + errors);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "error");
@@ -47,6 +47,13 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AddressInUseException.class)
+    public ResponseEntity<Object> handleAddressInUseException(AddressInUseException ex) {
+        Map<String, String> error = Map.of("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
 
     // Optional: Handle ResourceNotFoundException
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -58,7 +65,7 @@ public class GlobalExceptionHandler {
     // Optional: Generic exception handler for unexpected errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {
-        System.err.println("❌ Unexpected Error: " + ex.getMessage());
+        System.err.println("Unexpected Error: " + ex.getMessage());
         ex.printStackTrace();
 
         Map<String, String> error = Map.of(

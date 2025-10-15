@@ -71,8 +71,8 @@ export default function Navbar() {
                         )}
 
 
-                        {/* Cart Button - Not for sellers */}
-                        {!currentUser?.roles?.includes('ROLE_SELLER') && (
+                        {/* Cart Button - Not for sellers or admins */}
+                        {!currentUser?.roles?.includes('ROLE_SELLER') && !currentUser?.roles?.includes('ROLE_ADMIN') && (
                             <button onClick={() => navigate('cart')} className="flex items-center text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition">
                                 <svg className="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                 Cart {cart && cart.cartItems.length > 0 && `(${cart.cartItems.length})`}
@@ -94,14 +94,22 @@ export default function Navbar() {
                                         <button onClick={() => { navigate('profile'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                             My Profile
                                         </button>
-                                        <button onClick={() => { navigate('addresses'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            Saved Addresses
-                                        </button>
+
+                                        {/* Saved Addresses - Only for regular users */}
+                                        {!currentUser?.roles?.includes('ROLE_SELLER') && !currentUser?.roles?.includes('ROLE_ADMIN') && (
+                                            <button onClick={() => { navigate('addresses'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Saved Addresses
+                                            </button>
+                                        )}
+
+                                        {/* Orders - Not for sellers */}
                                         {!currentUser?.roles?.includes('ROLE_SELLER') && (
                                             <button onClick={() => { navigate('order-history'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Orders
                                             </button>
                                         )}
+
+                                        {/* Manage Orders - Only for sellers */}
                                         {currentUser?.roles?.includes('ROLE_SELLER') && (
                                             <button onClick={() => { navigate('manage-orders'); setIsDropdownOpen(false); }} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Manage Orders

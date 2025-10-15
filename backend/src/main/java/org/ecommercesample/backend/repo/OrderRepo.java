@@ -12,13 +12,13 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepo extends JpaRepository<Order, Long> {
-    List<Order> getOrdersByUserId(Long userId);
+    List<Order> findByUserIdOrderByOrderDateDesc(Long userId);
 
 
     Optional<Order> findByIdAndUserId(Long orderId, Long userId);
 
     Long user(User user);
 
-    @Query("SELECT DISTINCT o from Order o JOIN o.orderItems oi WHERE oi.product.seller.id=:sellerId")
+    @Query("SELECT o FROM Order o JOIN o.orderItems oi WHERE oi.product.seller.id = :sellerId GROUP BY o.id ORDER BY CASE WHEN o.status = 'CANCELLED' OR o.status = 'DELIVERED' THEN 1 ELSE 0 END ASC, o.orderDate DESC")
     List<Order> findOrdersBySellerId(@Param("sellerId") Long sellerId);
 }

@@ -5,7 +5,7 @@ import AddressForm from '../components/AddressForm';
 
 export default function AddressPage() {
     // MODIFICATION: Getting the new state and functions from the context.
-    const { addresses, fetchAddresses, isAddressSelectionMode, selectAddressAndReturn } = useAppContext();
+    const { addresses, fetchAddresses, isAddressSelectionMode, selectAddressAndReturn, deleteAddress } = useAppContext();
     const [isAddingAddress, setIsAddingAddress] = useState(false);
 
     useEffect(() => {
@@ -16,6 +16,12 @@ export default function AddressPage() {
     const handleSelectAddress = (addressId) => {
         if (isAddressSelectionMode) {
             selectAddressAndReturn(addressId);
+        }
+    };
+
+    const handleDeleteAddress = async (addressId) => {
+        if (window.confirm("Are you sure you want to delete this address?")) {
+            await deleteAddress(addressId);
         }
     };
 
@@ -42,14 +48,25 @@ export default function AddressPage() {
                     // MODIFICATION: The address card is now clickable if in selection mode.
                     <div
                         key={address.id}
-                        onClick={() => handleSelectAddress(address.id)}
                         className={`bg-white p-6 rounded-lg shadow-md ${isAddressSelectionMode ? 'cursor-pointer hover:shadow-xl hover:border-blue-500 border-2 border-transparent transition' : ''}`}
                     >
-                        <p className="font-semibold">{address.name}</p>
-                        <p>{address.addressLine1}</p>
-                        {address.landmark && <p>{address.landmark}</p>}
-                        <p>{address.city}, {address.state} - {address.pinCode}</p>
-                        <p>Phone: {address.phoneNumber}</p>
+                        <div onClick={() => handleSelectAddress(address.id)} >
+                            <p className="font-semibold">{address.name}</p>
+                            <p>{address.addressLine1}</p>
+                            {address.landmark && <p>{address.landmark}</p>}
+                            <p>{address.city}, {address.state} - {address.pinCode}</p>
+                            <p>Phone: {address.phoneNumber}</p>
+                        </div>
+                        <div className="flex justify-end mt-4">
+                            <button
+                                onClick={() => handleDeleteAddress(address.id)}
+                                className="text-red-500 hover:text-red-700"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

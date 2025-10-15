@@ -32,4 +32,11 @@ public class AddressController {
         List<Address> addresses=addressService.getAddresses(userId);
         return ResponseEntity.ok(addresses);
     }
+
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<Void> deleteAddress(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long addressId) {
+        Long userId = userPrincipal.getUser().getId();
+        addressService.deleteAddress(addressId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

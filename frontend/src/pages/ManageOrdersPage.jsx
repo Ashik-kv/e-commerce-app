@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 export default function ManageOrdersPage() {
@@ -11,6 +11,23 @@ export default function ManageOrdersPage() {
     const handleStatusChange = (orderId, status) => {
         updateOrderStatus(orderId, status);
     };
+
+    const sortedOrders = useMemo(() => {
+        if (!allOrders) return [];
+        return [...allOrders].sort((a, b) => {
+            const isACompleted = a.orderStatus === 'CANCELLED' || a.orderStatus === 'DELIVERED';
+            const isBCompleted = b.orderStatus === 'CANCELLED' || b.orderStatus === 'DELIVERED';
+
+            if (isACompleted && !isBCompleted) {
+                return 1;
+            }
+            if (!isACompleted && isBCompleted) {
+                return -1;
+            }
+
+            return new Date(b.orderDate) - new Date(a.orderDate);
+        });
+    }, [allOrders]);
 
     return (
         <div className="container mx-auto p-4 md:p-8">
@@ -28,7 +45,7 @@ export default function ManageOrdersPage() {
                     </tr>
                     </thead>
                     <tbody>
-                    {allOrders.map(order => (
+                    {sortedOrders.map(order => (
                         <tr key={order.orderId} className="border-b">
                             <td className="p-3">{order.orderId}</td>
                             <td className="p-3">{order.user.email}</td>
@@ -39,7 +56,7 @@ export default function ManageOrdersPage() {
                                 <select
                                     value={order.orderStatus}
                                     onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
-                                    disabled={order.orderStatus === 'CANCELLED'}
+                                    disabled={order.orderStatus === 'CANCELLED' || order.orderStatus === 'DELIVERED'}
                                     className="p-2 border rounded bg-white text-black disabled:bg-gray-200 disabled:cursor-not-allowed"
                                 >
                                     <option value="PENDING">Pending</option>

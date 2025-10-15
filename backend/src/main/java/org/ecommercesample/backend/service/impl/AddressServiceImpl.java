@@ -8,6 +8,7 @@ import org.ecommercesample.backend.repo.UserRepo;
 import org.ecommercesample.backend.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,5 +34,14 @@ public class AddressServiceImpl implements AddressService {
             throw new ResourceNotFoundException("User not found with id:"+userId);
         }
         return addressRepo.findByUserId(userId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAddress(Long addressId, Long userId) {
+        if (!addressRepo.existsById(addressId)) {
+            throw new ResourceNotFoundException("Address not found with id: " + addressId);
+        }
+        addressRepo.deleteByIdAndUserId(addressId, userId);
     }
 }

@@ -709,11 +709,30 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const deleteAddress = async (addressId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/addresses/${addressId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                await fetchAddresses(); // Refresh addresses after deletion
+                return { success: true };
+            }
+            const errorData = await response.json();
+            return { success: false, error: errorData.message || "Failed to delete address." };
+        } catch (error) {
+            console.error("Failed to delete address:", error);
+            return { success: false, error: "An unexpected error occurred." };
+        }
+    };
+
+
     const value = {
         users, products, categories, currentUser, currentPage, selectedProductId, isLoading, cart, addresses, orders, filters, allOrders, reviews, averageRating,
         isAddressSelectionMode, selectedAddressId, setSelectedAddressId,
         login, register, logout, addProduct, updateProduct, deleteProduct, navigate, fetchUsers, promoteUserToSeller,
-        fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress,
+        fetchCategories, addToCart, removeFromCart, updateCartItemQuantity, updateFilters, addAddress, deleteAddress,
         fetchAddresses, createOrder, fetchOrders, cancelOrder, increaseStock, reduceStock,
         startAddressSelection, selectAddressAndReturn, fetchAllOrders, updateOrderStatus,
         fetchReviews, fetchAverageRating, addReview, updateReview,

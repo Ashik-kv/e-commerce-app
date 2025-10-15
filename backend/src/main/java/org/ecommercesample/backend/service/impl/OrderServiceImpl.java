@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderResponse> getOrderHistory(Long userId) {
-        List<Order> orders=orderRepo.getOrdersByUserId(userId);
+        List<Order> orders=orderRepo.findByUserIdOrderByOrderDateDesc(userId);
         List<OrderResponse> orderResponses=new ArrayList<>();
         for(Order order:orders){
             orderResponses.add(mapOrderToResponse(order));
@@ -174,8 +174,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
 
-        if (order.getStatus() == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot change the status of a cancelled order.");
+        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Cannot change the status of a cancelled or delivered order.");
         }
 
         boolean isSellerProductInOrder = order.getOrderItems().stream()
@@ -183,6 +183,19 @@ public class OrderServiceImpl implements OrderService {
 
         if (!isSellerProductInOrder) {
             throw new ForbiddenException("You are not authorized to update this order.");
+        }
+
+        if (status == OrderStatus.CANCELLED) {
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                int newStock = product.getStockQuantity() + orderItem.getQuantity();
+                product.setStockQuantity(newStock);
+
+                if (newStock > 0) {
+                    product.setAvailable(true);
+                }
+                productRepo.save(product);
+            }
         }
 
         order.setStatus(status);

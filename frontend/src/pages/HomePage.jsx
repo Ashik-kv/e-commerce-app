@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import ProductCard from '../components/ProductCard';
-import ProductFilter from '../components/ProductFilter';
 import AdminDashboard from './AdminDashboard';
 import SellerHomePage from './SellerHomePage';
 
@@ -20,7 +19,6 @@ export default function HomePage() {
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-4xl font-extrabold text-gray-800">Featured Products</h1>
-                <ProductFilter />
             </div>
 
             {isLoading ? (

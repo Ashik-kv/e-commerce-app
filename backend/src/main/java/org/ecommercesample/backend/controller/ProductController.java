@@ -19,28 +19,7 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public List<Product> viewAllProducts(
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String keyword,
-            // ✨ ADD THIS LINE
-            @RequestParam(required = false) Boolean available) {
-
-//        boolean hasFilters = (categoryId != null)
-//                || (minPrice != null)
-//                || (maxPrice != null)
-//                || (brand != null && !brand.trim().isEmpty())
-//                || (keyword != null && !keyword.trim().isEmpty())
-//                // ✨ ADD THIS LINE
-//                || (available != null);
-//
-//        if (hasFilters) {
-//            // ✨ UPDATE THIS LINE to pass the 'available' parameter
-//            return productService.getFilteredProducts(categoryId, minPrice, maxPrice, keyword, brand, available);
-//
-//        }
+    public List<Product> viewAllProducts() {
         return productService.getAllProducts();
     }
 

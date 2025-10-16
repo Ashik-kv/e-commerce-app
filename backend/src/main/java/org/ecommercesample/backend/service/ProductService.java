@@ -77,14 +77,6 @@ public class ProductService {
         return productRepo.findByKeyword(keyword);
     }
 
-//    public List<Product> getFilteredProducts(Long categoryId, Double minPrice, Double maxPrice, String keyword, String brand, Boolean available)
-//    {
-//        // If the frontend doesn't specify availability, we can default to true
-//        Boolean searchAvailability = (available == null) ? true : available;
-//
-//        // ✨ UPDATE THE METHOD CALL
-//        return productRepo.findProductsByCriteria(categoryId, minPrice, maxPrice, searchAvailability, keyword, brand);
-//    }
 
     public void reduceStock(Long productId, int quantity) {
         Product product = getProductById(productId);
@@ -127,9 +119,8 @@ public class ProductService {
             throw new ResourceNotFoundException("Product not found with id: " + productId);
         }
 
-        // 👇 Add this check before attempting deletion
         if (orderItemRepo.existsByProductId(productId)) {
-            // Throw an exception with a clear, user-friendly message
+
             throw new DataIntegrityViolationException("Cannot delete this product because it is part of existing customer orders. Consider marking it as 'unavailable' instead.");
         }
 

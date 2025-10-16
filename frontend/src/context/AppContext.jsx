@@ -27,10 +27,6 @@ export const AppProvider = ({ children }) => {
     // Centralized filters state for both search and filtering
     const [filters, setFilters] = useState({
         keyword: '',
-        category: '',
-        brand: '',
-        minPrice: '',
-        maxPrice: ''
     });
 
     const API_BASE_URL = 'http://localhost:8080';
@@ -76,14 +72,7 @@ export const AppProvider = ({ children }) => {
                     url = `${API_BASE_URL}/api/products/search/${encodeURIComponent(trimmedKeyword)}`;
                 } else {
                     // Otherwise, use the general endpoint with other filters
-                    const queryParams = new URLSearchParams();
-                    if (filters.category) queryParams.append('categoryId', filters.category);
-                    if (filters.brand?.trim()) queryParams.append('brand', filters.brand.trim());
-                    if (filters.minPrice) queryParams.append('minPrice', filters.minPrice);
-                    if (filters.maxPrice) queryParams.append('maxPrice', filters.maxPrice);
-
-                    const queryString = queryParams.toString();
-                    url = `${API_BASE_URL}/api/products${queryString ? `?${queryString}` : ''}`;
+                    url = `${API_BASE_URL}/api/products`;
                 }
 
                 const response = await fetch(url);
